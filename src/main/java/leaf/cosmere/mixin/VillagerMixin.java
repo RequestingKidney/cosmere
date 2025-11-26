@@ -38,7 +38,7 @@ public class VillagerMixin
 						{
 							final SpiritwebCapability offspringCap = (SpiritwebCapability) offspringSW;
 							offspringCap.clearManifestations();
-							offspringCap.setHasBeenInitialized();
+							offspringCap.setHasBeenInitialized(true);
 
 							if (MathHelper.randomBool())//todo config for chance for offspring to also have powers
 							{

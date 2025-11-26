@@ -76,13 +76,13 @@ public class EntityEventHandler
 				if (CosmereConfigs.SERVER_CONFIG.POWER_GENERATION.get() == CosmereServerConfig.PowerGeneration.NONE)
 				{
 					// no powers
-					spiritweb.setHasBeenInitialized();
+					spiritweb.setHasBeenInitialized(true);
 				}
 				else if (CosmereConfigs.SERVER_CONFIG.POWER_GENERATION.get() == CosmereServerConfig.PowerGeneration.RANDOM)
 				{
 					//give random power
 					giveEntityStartingManifestation(livingEntity, spiritweb);
-					spiritweb.setHasBeenInitialized();
+					spiritweb.setHasBeenInitialized(true);
 				}
 				else
 				{
@@ -111,7 +111,7 @@ public class EntityEventHandler
 					giveEntityStartingManifestation(livingEntity, spiritweb);
 				}
 
-				spiritweb.setHasBeenInitialized();
+				spiritweb.setHasBeenInitialized(true);
 			}
 			else if (eventEntity instanceof Warden warden)
 			{
@@ -128,7 +128,7 @@ public class EntityEventHandler
 					manifestationAttribute.setBaseValue(9);
 				}
 
-				spiritweb.setHasBeenInitialized();
+				spiritweb.setHasBeenInitialized(true);
 			}
 		});
 	}

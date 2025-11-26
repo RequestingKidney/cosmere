@@ -63,7 +63,7 @@ public class PowerSaveState
 
 		public boolean isActive(ISpiritweb spiritweb)
 		{
-			Map<Manifestation, Integer> active = spiritweb.getManifestations();
+			Map<Manifestation, Integer> active = spiritweb.getManifestationModes();
 			for (Map.Entry<Manifestation, Integer> entry : manifestations.entrySet())
 			{
 				Map.Entry<Manifestation, Integer> activeEntry = getEntry(active, entry.getKey());
@@ -127,7 +127,7 @@ public class PowerSaveState
 
 		public void addManifestations(ISpiritweb spiritweb)
 		{
-			manifestations = spiritweb.getManifestations(false, true);
+			manifestations = spiritweb.getManifestationModes(false, true);
 			if(CosmereConfigs.CLIENT_CONFIG.disableActivatorChatMessage.get())
 			{
 				return;

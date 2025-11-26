@@ -168,10 +168,10 @@ public class ChooseMetalbornPowersCommand extends ModCommand
 				else
 				{
 					EntityEventHandler.giveEntityStartingManifestation(player, spiritwebCap);
-					spiritwebCap.setHasBeenInitialized();
+					spiritwebCap.setHasBeenInitialized(true);
 				}
 
-				spiritwebCap.setHasBeenInitialized();
+				spiritwebCap.setHasBeenInitialized(true);
 
 				ReportPowersFoundOnPlayer(context, player);
 				spiritweb.syncToClients(null);
@@ -227,7 +227,7 @@ public class ChooseMetalbornPowersCommand extends ModCommand
 			SpiritwebCapability.get(player).ifPresent(spiritweb ->
 			{
 				spiritweb.clearManifestations();
-				((SpiritwebCapability) spiritweb).setHasNotBeenInitialized();
+				((SpiritwebCapability) spiritweb).setHasBeenInitialized(false);
 				spiritweb.syncToClients(null);
 
 				context.getSource().sendSuccess(() -> Component.literal("Successfully reset player " + player.getName().getString()), false);

@@ -9,6 +9,7 @@ import leaf.cosmere.api.ISpiritwebSubmodule;
 import leaf.cosmere.api.Manifestations;
 import leaf.cosmere.api.cosmereEffect.CosmereEffect;
 import leaf.cosmere.api.cosmereEffect.CosmereEffectInstance;
+import leaf.cosmere.api.cosmerePower.CosmerePowerInstance;
 import leaf.cosmere.api.manifestation.Manifestation;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
@@ -31,10 +32,6 @@ public interface ISpiritweb extends INBTSerializable<CompoundTag>
 
 	boolean hasManifestation(Manifestation manifestation, boolean ignoreTemporaryPower);
 
-	void giveManifestation(Manifestation manifestation, int i);
-
-	void removeManifestation(Manifestation manifestation);
-
 	Manifestation getSelectedManifestation();
 
 	boolean canTickManifestation(Manifestation manifestation);
@@ -49,21 +46,17 @@ public interface ISpiritweb extends INBTSerializable<CompoundTag>
 
 	void syncToClients(@Nullable ServerPlayer serverPlayerEntity);
 
-	void deactivateCurrentManifestation();
-
 	void deactivateManifestations();
-
-	void clearManifestations();
-
-	List<Manifestation> getAvailableManifestations();
 
 	List<Manifestation> getAvailableManifestations(boolean ignoreTemporaryPower);
 
-	HashMap<Manifestation, Integer> getManifestations();
+	List<Manifestation> getAvailableManifestations();
 
-	HashMap<Manifestation, Integer> getManifestations(boolean ignoreTemporaryPower, boolean ignoreInactivePower);
+	HashMap<Manifestation, Integer> getManifestationModes();
 
-	String changeManifestation(int dir);
+	HashMap<Manifestation, Integer> getManifestationModes(boolean ignoreTemporaryPower, boolean ignoreInactivePower);
+
+	void changeManifestation(int dir);
 
 	void renderWorldEffects(RenderLevelStageEvent event);
 
@@ -99,4 +92,14 @@ public interface ISpiritweb extends INBTSerializable<CompoundTag>
 	boolean hasEffect(CosmereEffect effect);
 
 	Set<Map.Entry<UUID, CosmereEffectInstance>> getEffects();
+
+	boolean hasBeenInitialized();
+
+	void setHasBeenInitialized(boolean hasBeenInitialized);
+
+	void giveCosmerePower(CosmerePowerInstance cosmerePowerInstance);
+
+	void removeCosmerePower(CosmerePowerInstance cosmerePowerInstance);
+
+	void clearCosmerePowers();
 }

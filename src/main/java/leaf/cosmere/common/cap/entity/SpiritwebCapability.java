@@ -14,6 +14,7 @@ import leaf.cosmere.api.ISpiritwebSubmodule;
 import leaf.cosmere.api.Manifestations;
 import leaf.cosmere.api.cosmereEffect.CosmereEffect;
 import leaf.cosmere.api.cosmereEffect.CosmereEffectInstance;
+import leaf.cosmere.api.cosmerePower.CosmerePowerInstance;
 import leaf.cosmere.api.manifestation.Manifestation;
 import leaf.cosmere.api.spiritweb.ISpiritweb;
 import leaf.cosmere.client.PowerSaveState;
@@ -89,6 +90,8 @@ public class SpiritwebCapability implements ISpiritweb
 
 	private final Map<UUID, CosmereEffectInstance> activeEffects = Maps.newHashMap();
 
+	private final Set<CosmerePowerInstance> spiritwebPowers = new HashSet<>();
+
 	private final Map<Manifestations.ManifestationTypes, ISpiritwebSubmodule> spiritwebSubmodules;
 
 	private Map<Integer, Map<Manifestation, Integer>> powerSaveStorage;
@@ -142,6 +145,22 @@ public class SpiritwebCapability implements ISpiritweb
 			}
 
 			nbt.put("ActiveEffects", listtag);
+		}
+
+		if (this.spiritwebPowers.isEmpty())
+		{
+			nbt.remove("SpiritwebPowers");
+		}
+		else
+		{
+			ListTag listtag = new ListTag();
+			for (CosmerePowerInstance cosmerePowerInstance : this.spiritwebPowers)
+			{
+				listtag.add(cosmerePowerInstance.serialize());
+				cosmerePowerInstance.getPower().removePower(this);
+			}
+
+			nbt.put("SpiritwebPowers", listtag);
 		}
 
 		for (ISpiritwebSubmodule spiritwebSubmodule : spiritwebSubmodules.values())
@@ -198,6 +217,18 @@ public class SpiritwebCapability implements ISpiritweb
 					this.activeEffects.put(cosmereEffectInstance.getUUID(), cosmereEffectInstance);
 					this.onEffectUpdated(cosmereEffectInstance, true, (Entity) null);
 				}
+			}
+		}
+
+		if (compoundTag.contains("SpiritwebPowers"))
+		{
+			ListTag listTag = (ListTag) compoundTag.get("SpiritwebPowers");
+			for (int i = 0; i < listTag.size(); ++i)
+			{
+				CompoundTag compoundtag = listTag.getCompound(i);
+				CosmerePowerInstance cosmereEffectInstance = CosmerePowerInstance.deserialize(compoundtag);
+				this.spiritwebPowers.add(cosmereEffectInstance);
+				cosmereEffectInstance.getPower().grantPower(this);
 			}
 		}
 
@@ -719,17 +750,12 @@ public class SpiritwebCapability implements ISpiritweb
 
 	public boolean hasBeenInitialized()
 	{
-		return hasBeenInitialized;
+		return this.hasBeenInitialized;
 	}
 
-	public void setHasBeenInitialized()
+	public void setHasBeenInitialized(boolean hasBeenInitialized)
 	{
-		hasBeenInitialized = true;
-	}
-
-	public void setHasNotBeenInitialized()
-	{
-		hasBeenInitialized = false;
+		this.hasBeenInitialized = hasBeenInitialized;
 	}
 
 	public boolean hasAnyPowers()
@@ -750,7 +776,7 @@ public class SpiritwebCapability implements ISpiritweb
 
 			if (manifestationAttribute.getValue() > 5)
 			{
-				setHasBeenInitialized();
+				setHasBeenInitialized(true);
 				return true;
 			}
 		}
@@ -786,41 +812,6 @@ public class SpiritwebCapability implements ISpiritweb
 		return false;
 	}
 
-
-	@Override
-	public void giveManifestation(Manifestation manifestation, int baseValue)
-	{
-		final Attribute attribute = manifestation.getAttribute();
-		if (attribute == null)
-		{
-			return;
-		}
-		AttributeInstance manifestationAttribute = livingEntity.getAttribute(attribute);
-
-		if (manifestationAttribute != null)
-		{
-			manifestationAttribute.setBaseValue(baseValue);
-		}
-
-		hasBeenInitialized = true;
-	}
-
-	@Override
-	public void removeManifestation(Manifestation manifestation)
-	{
-		final Attribute attribute = manifestation.getAttribute();
-		if (attribute == null)
-		{
-			return;
-		}
-
-		AttributeInstance manifestationAttribute = livingEntity.getAttribute(attribute);
-		if (manifestationAttribute != null)
-		{
-			manifestationAttribute.setBaseValue(0);
-		}
-	}
-
 	@Override
 	public boolean canTickManifestation(Manifestation manifestation)
 	{
@@ -838,26 +829,9 @@ public class SpiritwebCapability implements ISpiritweb
 	}
 
 	@Override
-	public void deactivateCurrentManifestation()
-	{
-		MANIFESTATIONS_MODE.remove(selectedManifestation);
-	}
-
-	@Override
 	public void deactivateManifestations()
 	{
 		MANIFESTATIONS_MODE.clear();
-	}
-
-	@Override
-	public void clearManifestations()
-	{
-		deactivateManifestations();
-
-		for (Manifestation manifestation : CosmereAPI.manifestationRegistry())
-		{
-			removeManifestation(manifestation);
-		}
 	}
 
 	@Override
@@ -871,7 +845,7 @@ public class SpiritwebCapability implements ISpiritweb
 	{
 		List<Manifestation> list = new ArrayList<Manifestation>();
 
-		//todo intelligently handle multiple powers
+		/*
 		for (Manifestation manifestation : CosmereAPI.manifestationRegistry())
 		{
 			if (manifestation == ManifestationRegistry.NONE.getManifestation())
@@ -883,19 +857,19 @@ public class SpiritwebCapability implements ISpiritweb
 			{
 				list.add(manifestation);
 			}
-		}
+		}*/
 
 		return list;
 	}
 
 	@Override
-	public HashMap<Manifestation, Integer> getManifestations()
+	public HashMap<Manifestation, Integer> getManifestationModes()
 	{
-		return getManifestations(false, false);
+		return getManifestationModes(false, false);
 	}
 
 	@Override
-	public HashMap<Manifestation, Integer> getManifestations(boolean ignoreTemporaryPower, boolean ignoreInactivePower)
+	public HashMap<Manifestation, Integer> getManifestationModes(boolean ignoreTemporaryPower, boolean ignoreInactivePower)
 	{
 		HashMap<Manifestation, Integer> list = new HashMap<>();
 		for(Manifestation manifestation: CosmereAPI.manifestationRegistry())
@@ -921,7 +895,7 @@ public class SpiritwebCapability implements ISpiritweb
 	}
 
 	@Override
-	public String changeManifestation(int dir)
+	public void changeManifestation(int dir)
 	{
 		List<Manifestation> unlockedManifestations = getAvailableManifestations();
 
@@ -948,7 +922,6 @@ public class SpiritwebCapability implements ISpiritweb
 
 			}
 		}
-		return selectedManifestation.getTranslationKey();
 	}
 
 	@Override
@@ -1031,5 +1004,26 @@ public class SpiritwebCapability implements ISpiritweb
 		{
 			Cosmere.packetHandler().sendTo(new SyncPlayerSpiritwebMessage(this.livingEntity.getId(), nbt), serverPlayerEntity);
 		}
+	}
+
+	public void giveCosmerePower(CosmerePowerInstance cosmerePowerInstance)
+	{
+		spiritwebPowers.add(cosmerePowerInstance);
+		cosmerePowerInstance.getPower().grantPower(this);
+	}
+
+	public void removeCosmerePower(CosmerePowerInstance cosmerePowerInstance)
+	{
+		spiritwebPowers.remove(cosmerePowerInstance);
+		cosmerePowerInstance.getPower().removePower(this);
+	}
+
+	public void clearCosmerePowers()
+	{
+		for (CosmerePowerInstance cosmerePowerInstance : spiritwebPowers)
+		{
+			cosmerePowerInstance.getPower().removePower(this);
+		}
+		spiritwebPowers.clear();
 	}
 }

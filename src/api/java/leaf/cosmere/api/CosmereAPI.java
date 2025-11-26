@@ -6,6 +6,7 @@ package leaf.cosmere.api;
 
 import com.mojang.logging.LogUtils;
 import leaf.cosmere.api.cosmereEffect.CosmereEffect;
+import leaf.cosmere.api.cosmerePower.CosmerePower;
 import leaf.cosmere.api.manifestation.Manifestation;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
@@ -18,13 +19,21 @@ import org.slf4j.Logger;
 
 public class CosmereAPI
 {
+	public static final String COSMERE_MODID = "cosmere";
+	public static final Logger logger = LogUtils.getLogger();
+	@NotNull
+	private static final Lazy<ResourceKey<? extends Registry<Manifestation>>> MANIFESTATION_REGISTRY_NAME = registryKey(Manifestation.class, "manifestation");
+	@NotNull
+	private static final Lazy<ResourceKey<? extends Registry<CosmereEffect>>> COSMERE_EFFECT_REGISTRY_NAME = registryKey(CosmereEffect.class, "cosmere_effect");
+	@NotNull
+	private static final Lazy<ResourceKey<? extends Registry<CosmerePower>>> COSMERE_POWER_REGISTRY_NAME = registryKey(CosmerePower.class, "cosmere_power");
+	private static IForgeRegistry<Manifestation> MANIFESTATION_REGISTRY;
+	private static IForgeRegistry<CosmereEffect> COSMERE_EFFECT_REGISTRY;
+	private static IForgeRegistry<CosmerePower> COSMERE_POWER_REGISTRY;
+
 	private CosmereAPI()
 	{
 	}
-
-	public static final String COSMERE_MODID = "cosmere";
-
-	public static final Logger logger = LogUtils.getLogger();
 
 	@NotNull
 	private static <T> Lazy<ResourceKey<? extends Registry<T>>> registryKey(@SuppressWarnings("unused") @NotNull Class<T> compileTimeTypeValidator, @NotNull String path)
@@ -33,15 +42,10 @@ public class CosmereAPI
 	}
 
 	@NotNull
-	private static final Lazy<ResourceKey<? extends Registry<Manifestation>>> MANIFESTATION_REGISTRY_NAME = registryKey(Manifestation.class, "manifestation");
-	private static IForgeRegistry<Manifestation> MANIFESTATION_REGISTRY;
-
-	@NotNull
 	public static ResourceKey<? extends Registry<Manifestation>> manifestationRegistryName()
 	{
 		return MANIFESTATION_REGISTRY_NAME.get();
 	}
-
 
 	@NotNull
 	public static IForgeRegistry<Manifestation> manifestationRegistry()
@@ -54,15 +58,10 @@ public class CosmereAPI
 	}
 
 	@NotNull
-	private static final Lazy<ResourceKey<? extends Registry<CosmereEffect>>> COSMERE_EFFECT_REGISTRY_NAME = registryKey(CosmereEffect.class, "cosmere_effect");
-	private static IForgeRegistry<CosmereEffect> COSMERE_EFFECT_REGISTRY;
-
-	@NotNull
 	public static ResourceKey<? extends Registry<CosmereEffect>> cosmereEffectRegistryName()
 	{
 		return COSMERE_EFFECT_REGISTRY_NAME.get();
 	}
-
 
 	@NotNull
 	public static IForgeRegistry<CosmereEffect> cosmereEffectRegistry()
@@ -72,5 +71,21 @@ public class CosmereAPI
 			COSMERE_EFFECT_REGISTRY = RegistryManager.ACTIVE.getRegistry(cosmereEffectRegistryName());
 		}
 		return COSMERE_EFFECT_REGISTRY;
+	}
+
+	@NotNull
+	public static ResourceKey<? extends Registry<CosmerePower>> cosmerePowerRegistryName()
+	{
+		return COSMERE_POWER_REGISTRY_NAME.get();
+	}
+
+	@NotNull
+	public static IForgeRegistry<CosmerePower> cosmerePowerRegistry()
+	{
+		if (COSMERE_POWER_REGISTRY == null)
+		{
+			COSMERE_POWER_REGISTRY = RegistryManager.ACTIVE.getRegistry(cosmerePowerRegistryName());
+		}
+		return COSMERE_POWER_REGISTRY;
 	}
 }
