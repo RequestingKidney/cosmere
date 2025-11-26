@@ -51,13 +51,13 @@ public class SoulforgerySpiritwebSubmodule implements ISpiritwebSubmodule
 	}
 
 	@Override
-	public void GiveStartingItem(Player player)
+	public void giveStartingItem(Player player)
 	{
 
 	}
 
 	@Override
-	public void GiveStartingItem(Player player, Manifestation manifestation)
+	public void giveStartingItem(Player player, Manifestation manifestation)
 	{
 
 	}

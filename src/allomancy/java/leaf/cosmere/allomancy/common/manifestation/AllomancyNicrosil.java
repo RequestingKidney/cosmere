@@ -59,7 +59,7 @@ public class AllomancyNicrosil extends AllomancyManifestation
 
 				if (itemInHand.isEmpty())
 				{
-					AllomancyNicrosil alloNicrosil = (AllomancyNicrosil) AllomancyManifestations.ALLOMANCY_POWERS.get(Metals.MetalType.NICROSIL).get();
+					AllomancyNicrosil alloNicrosil = (AllomancyNicrosil) AllomancyManifestations.ALLOMANCY_MANIFESTATIONS.get(Metals.MetalType.NICROSIL).get();
 
 					//if manifestation is active and has nicrosil metal to burn
 					if (alloNicrosil.isActive(iSpiritweb))

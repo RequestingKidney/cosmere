@@ -78,7 +78,7 @@ public class PatchouliAllomancyCategory
 		}
 
 		//allomancy
-		for (ManifestationRegistryObject<AllomancyManifestation> manifestationRegistryObject : AllomancyManifestations.ALLOMANCY_POWERS.values())
+		for (ManifestationRegistryObject<AllomancyManifestation> manifestationRegistryObject : AllomancyManifestations.ALLOMANCY_MANIFESTATIONS.values())
 		{
 			AllomancyManifestation manifestation = manifestationRegistryObject.get();
 			Metals.MetalType metalType = manifestation.getMetalType();

@@ -111,7 +111,7 @@ public class AllomancyTin extends AllomancyManifestation
 			return;
 
 		SoundInstance eventSound = event.getSound();
-		AllomancyTin tinAllomancy = (AllomancyTin) AllomancyManifestations.ALLOMANCY_POWERS.get(Metals.MetalType.TIN).get();
+		AllomancyTin tinAllomancy = (AllomancyTin) AllomancyManifestations.ALLOMANCY_MANIFESTATIONS.get(Metals.MetalType.TIN).get();
 
 		if ((eventSound == null))
 		{

@@ -100,7 +100,7 @@ public class AllomancyEngLangGen extends LanguageProvider
 
 	private void addManifestations()
 	{
-		for (ManifestationRegistryObject<AllomancyManifestation> manifestationRegistryObject : AllomancyManifestations.ALLOMANCY_POWERS.values())
+		for (ManifestationRegistryObject<AllomancyManifestation> manifestationRegistryObject : AllomancyManifestations.ALLOMANCY_MANIFESTATIONS.values())
 		{
 			AllomancyManifestation manifestation = manifestationRegistryObject.getManifestation();
 

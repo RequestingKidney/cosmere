@@ -22,7 +22,7 @@ public class FeruchemyManifestations
 
 
 	// Feruchemy powers
-	public static final Map<Metals.MetalType, ManifestationRegistryObject<FeruchemyManifestation>> FERUCHEMY_POWERS =
+	public static final Map<Metals.MetalType, ManifestationRegistryObject<FeruchemyManifestation>> FERUCHEMY_MANIFESTATIONS =
 			Arrays.stream(EnumUtils.METAL_TYPES)
 					.filter(Metals.MetalType::hasAssociatedManifestation)
 					.collect(Collectors.toMap(

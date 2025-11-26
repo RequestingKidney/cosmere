@@ -107,7 +107,7 @@ public class CoinPouchItem extends ProjectileWeaponItem
 	{
 		SpiritwebCapability.get(player).ifPresent((data) ->
 		{
-			final AllomancyIronSteel steelManifestation = (AllomancyIronSteel) AllomancyManifestations.ALLOMANCY_POWERS.get(Metals.MetalType.STEEL).get();
+			final AllomancyIronSteel steelManifestation = (AllomancyIronSteel) AllomancyManifestations.ALLOMANCY_MANIFESTATIONS.get(Metals.MetalType.STEEL).get();
 
 			if (steelManifestation.isActive(data) && steelManifestation.getMode(data) > 0)
 			{

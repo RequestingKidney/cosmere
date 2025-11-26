@@ -23,7 +23,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static leaf.cosmere.allomancy.common.registries.AllomancyManifestations.ALLOMANCY_POWERS;
+import static leaf.cosmere.allomancy.common.registries.AllomancyManifestations.ALLOMANCY_MANIFESTATIONS;
 import static leaf.cosmere.api.Constants.Strings.*;
 
 @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = Allomancy.MODID, bus = Bus.MOD)
@@ -57,7 +57,7 @@ public class AllomancyKeybindings
 		for (Metals.MetalType metalType: ALLOMANCY_POWER.keySet())
 		{
 			KeyMapping key = ALLOMANCY_POWER.get(metalType);
-			AllomancyManifestation manifest = ALLOMANCY_POWERS.get(metalType).getManifestation();
+			AllomancyManifestation manifest = ALLOMANCY_MANIFESTATIONS.get(metalType).getManifestation();
 			event.register(key);
 			Activator entry = new Activator(key, manifest);
 			entry.setCategory("allomancy");

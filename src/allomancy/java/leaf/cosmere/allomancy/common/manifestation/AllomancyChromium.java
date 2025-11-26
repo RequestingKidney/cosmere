@@ -35,7 +35,7 @@ public class AllomancyChromium extends AllomancyManifestation
 		{
 			SpiritwebCapability.get(trueSourcePlayer).ifPresent(player ->
 			{
-				final AllomancyManifestation aChromium = AllomancyManifestations.ALLOMANCY_POWERS.get(Metals.MetalType.CHROMIUM).get();
+				final AllomancyManifestation aChromium = AllomancyManifestations.ALLOMANCY_MANIFESTATIONS.get(Metals.MetalType.CHROMIUM).get();
 				if (aChromium.isActive(player))
 				{
 					SpiritwebCapability.get(targetEntity).ifPresent(targetISpiritweb ->

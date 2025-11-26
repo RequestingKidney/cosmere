@@ -10,20 +10,25 @@ import leaf.cosmere.allomancy.client.metalScanning.ScanResult;
 import leaf.cosmere.allomancy.common.Allomancy;
 import leaf.cosmere.allomancy.common.config.AllomancyConfigs;
 import leaf.cosmere.allomancy.common.items.MetalVialItem;
-import leaf.cosmere.allomancy.common.manifestation.*;
+import leaf.cosmere.allomancy.common.manifestation.AllomancyBrass;
+import leaf.cosmere.allomancy.common.manifestation.AllomancyIronSteel;
+import leaf.cosmere.allomancy.common.manifestation.AllomancyTin;
+import leaf.cosmere.allomancy.common.manifestation.AllomancyZinc;
+import leaf.cosmere.allomancy.common.powers.AllomancyPower;
 import leaf.cosmere.allomancy.common.registries.AllomancyItems;
 import leaf.cosmere.allomancy.common.registries.AllomancyManifestations;
-import leaf.cosmere.api.EnumUtils;
-import leaf.cosmere.api.ISpiritwebSubmodule;
-import leaf.cosmere.api.Manifestations;
-import leaf.cosmere.api.Metals;
+import leaf.cosmere.api.*;
+import leaf.cosmere.api.cosmerePower.CosmerePower;
+import leaf.cosmere.api.cosmerePower.CosmerePowerInstance;
 import leaf.cosmere.api.helpers.CompoundNBTHelper;
 import leaf.cosmere.api.helpers.DrawHelper;
 import leaf.cosmere.api.helpers.PlayerHelper;
-import leaf.cosmere.api.manifestation.Manifestation;
+import leaf.cosmere.api.math.MathHelper;
 import leaf.cosmere.api.spiritweb.ISpiritweb;
+import leaf.cosmere.common.config.CosmereConfigs;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
@@ -38,6 +43,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static leaf.cosmere.allomancy.common.registries.AllomancyPowers.ALLOMANCY_POWERS;
 
 public class AllomancySpiritwebSubmodule implements ISpiritwebSubmodule
 {
@@ -64,7 +71,7 @@ public class AllomancySpiritwebSubmodule implements ISpiritwebSubmodule
 
 		//Iron allomancy
 		{
-			AllomancyIronSteel iron = (AllomancyIronSteel) AllomancyManifestations.ALLOMANCY_POWERS.get(Metals.MetalType.IRON).get();
+			AllomancyIronSteel iron = (AllomancyIronSteel) AllomancyManifestations.ALLOMANCY_MANIFESTATIONS.get(Metals.MetalType.IRON).get();
 			final boolean ironActive = iron.isActive(spiritweb);
 
 			if (ironActive && !iron.isCompounding(spiritweb))
@@ -75,7 +82,7 @@ public class AllomancySpiritwebSubmodule implements ISpiritwebSubmodule
 
 		//steel allomancy
 		{
-			AllomancyIronSteel steel = (AllomancyIronSteel) AllomancyManifestations.ALLOMANCY_POWERS.get(Metals.MetalType.STEEL).get();
+			AllomancyIronSteel steel = (AllomancyIronSteel) AllomancyManifestations.ALLOMANCY_MANIFESTATIONS.get(Metals.MetalType.STEEL).get();
 			final boolean steelActive = steel.isActive(spiritweb);
 
 			if (steelActive && !steel.isCompounding(spiritweb))
@@ -86,7 +93,7 @@ public class AllomancySpiritwebSubmodule implements ISpiritwebSubmodule
 
 		//tin allomancy
 		{
-			AllomancyTin tin = (AllomancyTin) AllomancyManifestations.ALLOMANCY_POWERS.get(Metals.MetalType.TIN).get();
+			AllomancyTin tin = (AllomancyTin) AllomancyManifestations.ALLOMANCY_MANIFESTATIONS.get(Metals.MetalType.TIN).get();
 			final boolean tinActive = tin.isActive(spiritweb);
 
 			if (tinActive && !tin.isCompounding(spiritweb))
@@ -97,7 +104,7 @@ public class AllomancySpiritwebSubmodule implements ISpiritwebSubmodule
 
 		//brass allomancy
 		{
-			AllomancyBrass brass = (AllomancyBrass) AllomancyManifestations.ALLOMANCY_POWERS.get(Metals.MetalType.BRASS).get();
+			AllomancyBrass brass = (AllomancyBrass) AllomancyManifestations.ALLOMANCY_MANIFESTATIONS.get(Metals.MetalType.BRASS).get();
 			final boolean brassActive = brass.isActive(spiritweb);
 
 			if (brassActive && !brass.isCompounding(spiritweb))
@@ -108,7 +115,7 @@ public class AllomancySpiritwebSubmodule implements ISpiritwebSubmodule
 
 		//zinc allomancy
 		{
-			AllomancyZinc zinc = (AllomancyZinc) AllomancyManifestations.ALLOMANCY_POWERS.get(Metals.MetalType.ZINC).get();
+			AllomancyZinc zinc = (AllomancyZinc) AllomancyManifestations.ALLOMANCY_MANIFESTATIONS.get(Metals.MetalType.ZINC).get();
 			final boolean zincActive = zinc.isActive(spiritweb);
 
 			if (zincActive && !zinc.isCompounding(spiritweb))
@@ -246,9 +253,9 @@ public class AllomancySpiritwebSubmodule implements ISpiritwebSubmodule
 	@Override
 	public void renderWorldEffects(ISpiritweb spiritweb, RenderLevelStageEvent event)
 	{
-		AllomancyIronSteel ironAllomancy = (AllomancyIronSteel) AllomancyManifestations.ALLOMANCY_POWERS.get(Metals.MetalType.IRON).get();
-		AllomancyIronSteel steelAllomancy = (AllomancyIronSteel) AllomancyManifestations.ALLOMANCY_POWERS.get(Metals.MetalType.STEEL).get();
-		AllomancyTin tinAllomancy = (AllomancyTin) AllomancyManifestations.ALLOMANCY_POWERS.get(Metals.MetalType.TIN).get();
+		AllomancyIronSteel ironAllomancy = (AllomancyIronSteel) AllomancyManifestations.ALLOMANCY_MANIFESTATIONS.get(Metals.MetalType.IRON).get();
+		AllomancyIronSteel steelAllomancy = (AllomancyIronSteel) AllomancyManifestations.ALLOMANCY_MANIFESTATIONS.get(Metals.MetalType.STEEL).get();
+		AllomancyTin tinAllomancy = (AllomancyTin) AllomancyManifestations.ALLOMANCY_MANIFESTATIONS.get(Metals.MetalType.TIN).get();
 
 		PoseStack viewModelStack = event.getPoseStack();
 
@@ -323,7 +330,7 @@ public class AllomancySpiritwebSubmodule implements ISpiritwebSubmodule
 	}
 
 	@Override
-	public void GiveStartingItem(Player player)
+	public void giveStartingItem(Player player)
 	{
 		ItemStack itemStack = new ItemStack(AllomancyItems.METAL_VIAL.get());
 		for (int i = 0; i < 16; i++)
@@ -334,14 +341,13 @@ public class AllomancySpiritwebSubmodule implements ISpiritwebSubmodule
 	}
 
 	@Override
-	public void GiveStartingItem(Player player, Manifestation manifestation)
+	public void giveStartingItem(Player player, CosmerePower power)
 	{
-		if (manifestation instanceof AllomancyManifestation allomancyManifestation)
-		{
-			ItemStack itemStack = new ItemStack(AllomancyItems.METAL_VIAL.get());
-			MetalVialItem.addMetals(itemStack, allomancyManifestation.getMetalType().getID(), 16);
-			PlayerHelper.addItem(player, itemStack);
-		}
+		if(!(power instanceof AllomancyPower allomancyPower)) return;
+
+		ItemStack itemStack = new ItemStack(AllomancyItems.METAL_VIAL.get());
+		MetalVialItem.addMetals(itemStack, allomancyPower.getMetalType().getID(), 16);
+		PlayerHelper.addItem(player, itemStack);
 	}
 
 	public int getIngestedMetal(Metals.MetalType metalType)
@@ -375,5 +381,44 @@ public class AllomancySpiritwebSubmodule implements ISpiritwebSubmodule
 	public void setPewterDelayedDamage(float pewterDelayedDamage)
 	{
 		this.pewterDelayedDamage = pewterDelayedDamage;
+	}
+
+	@Override
+	public void giveEntityStartingManifestation(LivingEntity entity, ISpiritweb spiritweb)
+	{
+		final Integer chanceOfFullPowers = CosmereConfigs.SERVER_CONFIG.FULLBORN_POWERS_CHANCE.get();
+
+		boolean isMistborn = MathHelper.chance(chanceOfFullPowers);
+
+		if(isMistborn)
+		{
+			CosmereAPI.logger.info("Entity {} is a Mistborn!", spiritweb.getLiving().getName().getString());
+
+			ALLOMANCY_POWERS.forEach((metalType, allomancyPower) -> {
+				CosmerePowerInstance cosmerePowerInstance = new CosmerePowerInstance(
+						allomancyPower.get(),
+						entity.getUUID(),
+						9,
+						false
+				);
+				spiritweb.giveCosmerePower(cosmerePowerInstance);
+			});
+			if(entity instanceof Player player) giveStartingItem(player);
+		}
+		else
+		{
+			int allomancyPowerID = MathHelper.randomInt(0, 15);
+			final Metals.MetalType metalType = Metals.MetalType.valueOf(allomancyPowerID).get();
+
+			CosmereAPI.logger.info("Entity {} is a {} Misting!", spiritweb.getLiving().getName().getString(), metalType.getName());
+			CosmerePowerInstance cosmerePowerInstance = new CosmerePowerInstance(
+					ALLOMANCY_POWERS.get(metalType).get(),
+					entity.getUUID(),
+					9,
+					false
+			);
+			spiritweb.giveCosmerePower(cosmerePowerInstance);
+			if(entity instanceof Player player) giveStartingItem(player, ALLOMANCY_POWERS.get(metalType).get());
+		}
 	}
 }

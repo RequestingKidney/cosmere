@@ -4,6 +4,7 @@
 
 package leaf.cosmere.api;
 
+import leaf.cosmere.api.cosmerePower.CosmerePower;
 import leaf.cosmere.api.manifestation.Manifestation;
 import leaf.cosmere.api.spiritweb.ISpiritweb;
 import net.minecraft.world.entity.LivingEntity;
@@ -42,12 +43,16 @@ public interface ISpiritwebSubmodule
 	}
 
 	//give a random starting item from this power set
-	default void GiveStartingItem(Player player)
+	default void giveStartingItem(Player player)
+	{
+	}
+
+	default void giveStartingItem(Player player, CosmerePower power)
 	{
 	}
 
 	//give a specific starting item based on the manifestation passed in
-	default void GiveStartingItem(Player player, Manifestation manifestation)
+	default void giveStartingItem(Player player, Manifestation manifestation)
 	{
 	}
 

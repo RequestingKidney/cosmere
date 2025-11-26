@@ -4,18 +4,22 @@
 
 package leaf.cosmere.feruchemy.common.capabilities;
 
+import leaf.cosmere.api.CosmereAPI;
 import leaf.cosmere.api.ISpiritwebSubmodule;
 import leaf.cosmere.api.Metals;
+import leaf.cosmere.api.cosmerePower.CosmerePowerInstance;
 import leaf.cosmere.api.helpers.PlayerHelper;
 import leaf.cosmere.api.manifestation.Manifestation;
 import leaf.cosmere.api.math.MathHelper;
 import leaf.cosmere.api.spiritweb.ISpiritweb;
+import leaf.cosmere.common.config.CosmereConfigs;
 import leaf.cosmere.feruchemy.client.utils.FeruchemyChargeThread;
 import leaf.cosmere.feruchemy.common.config.FeruchemyConfigs;
 import leaf.cosmere.feruchemy.common.items.RingMetalmindItem;
 import leaf.cosmere.feruchemy.common.manifestation.FeruchemyManifestation;
 import leaf.cosmere.feruchemy.common.registries.FeruchemyItems;
 import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
@@ -24,12 +28,14 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.HashMap;
 import java.util.List;
 
+import static leaf.cosmere.feruchemy.common.registries.FeruchemyPowers.FERUCHEMY_POWERS;
+
 public class FeruchemySpiritwebSubmodule implements ISpiritwebSubmodule
 {
 	private static final HashMap<Metals.MetalType, Double> metalmindChargesMap = new HashMap<>();
 
 	@Override
-	public void GiveStartingItem(Player player)
+	public void giveStartingItem(Player player)
 	{
 		final int startingMetalmindCount = FeruchemyConfigs.SERVER.FULL_FERUCHEMIST_STARTING_METALMIND_COUNT.get();
 		final double maxAmount = FeruchemyConfigs.SERVER.STARTING_METALMIND_RANDOMISED_MAX_FILL_AMOUNT.get();
@@ -38,19 +44,19 @@ public class FeruchemySpiritwebSubmodule implements ISpiritwebSubmodule
 		{
 			final float fillAmount = (float) (maxAmount * Math.random());
 			int id = MathHelper.randomInt(0, 15);
-			Metals.MetalType.valueOf(id).ifPresent(metalType -> GiveStartingItem(player, metalType, fillAmount));
+			Metals.MetalType.valueOf(id).ifPresent(metalType -> giveStartingItem(player, metalType, fillAmount));
 		}
 	}
 
 	@Override
-	public void GiveStartingItem(Player player, Manifestation manifestation)
+	public void giveStartingItem(Player player, Manifestation manifestation)
 	{
 		if (manifestation instanceof FeruchemyManifestation feruchemyManifestation)
 		{
 			final double maxAmount = FeruchemyConfigs.SERVER.STARTING_METALMIND_RANDOMISED_MAX_FILL_AMOUNT.get();
 
 			final float fillAmount = (float) (maxAmount * Math.random());
-			GiveStartingItem(player, feruchemyManifestation.getMetalType(), fillAmount);
+			giveStartingItem(player, feruchemyManifestation.getMetalType(), fillAmount);
 		}
 	}
 
@@ -84,7 +90,7 @@ public class FeruchemySpiritwebSubmodule implements ISpiritwebSubmodule
 		ISpiritwebSubmodule.super.collectMenuInfo(m_infoText);
 	}
 
-	private static void GiveStartingItem(Player player, Metals.MetalType metalType, float fillAmount)
+	private static void giveStartingItem(Player player, Metals.MetalType metalType, float fillAmount)
 	{
 		final RingMetalmindItem metalmindItem = FeruchemyItems.METAL_RINGS.get(metalType).get();
 		ItemStack itemStack = new ItemStack(metalmindItem);
@@ -94,4 +100,43 @@ public class FeruchemySpiritwebSubmodule implements ISpiritwebSubmodule
 		PlayerHelper.addItem(player, itemStack);
 	}
 
+	@Override
+	public void giveEntityStartingManifestation(LivingEntity entity, ISpiritweb spiritweb)
+	{
+		final Integer chanceOfFullPowers = CosmereConfigs.SERVER_CONFIG.FULLBORN_POWERS_CHANCE.get();
+
+		boolean isFullFeruchemist = MathHelper.chance(chanceOfFullPowers);
+
+		if (isFullFeruchemist)
+		{
+			CosmereAPI.logger.info("Entity {} is a Full Feruchemist!", spiritweb.getLiving().getName().getString());
+
+			FERUCHEMY_POWERS.forEach((metalType, allomancyPower) ->
+			{
+				CosmerePowerInstance cosmerePowerInstance = new CosmerePowerInstance(
+						allomancyPower.get(),
+						entity.getUUID(),
+						9,
+						false
+				);
+				spiritweb.giveCosmerePower(cosmerePowerInstance);
+			});
+			if (entity instanceof Player player) giveStartingItem(player);
+		}
+		else
+		{
+			int allomancyPowerID = MathHelper.randomInt(0, 15);
+			final Metals.MetalType metalType = Metals.MetalType.valueOf(allomancyPowerID).get();
+
+			CosmereAPI.logger.info("Entity {} is a {} Ferring!", spiritweb.getLiving().getName().getString(), metalType.getName());
+			CosmerePowerInstance cosmerePowerInstance = new CosmerePowerInstance(
+					FERUCHEMY_POWERS.get(metalType).get(),
+					entity.getUUID(),
+					9,
+					false
+			);
+			spiritweb.giveCosmerePower(cosmerePowerInstance);
+			if (entity instanceof Player player) giveStartingItem(player, FERUCHEMY_POWERS.get(metalType).get());
+		}
+	}
 }

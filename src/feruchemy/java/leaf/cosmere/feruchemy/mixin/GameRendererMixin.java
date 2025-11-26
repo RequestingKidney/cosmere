@@ -37,7 +37,7 @@ public class GameRendererMixin
 
 		SpiritwebCapability.get(player).ifPresent(playerSpiritweb ->
 		{
-			final FeruchemyManifestation tinF = FeruchemyManifestations.FERUCHEMY_POWERS.get(Metals.MetalType.TIN).get();
+			final FeruchemyManifestation tinF = FeruchemyManifestations.FERUCHEMY_MANIFESTATIONS.get(Metals.MetalType.TIN).get();
 
 			if (tinF.isTapping(playerSpiritweb) && tinF.canAfford(playerSpiritweb, true))
 			{
@@ -63,7 +63,7 @@ public class GameRendererMixin
 
 		SpiritwebCapability.get(player).ifPresent(playerSpiritweb ->
 		{
-			final FeruchemyManifestation tinF = FeruchemyManifestations.FERUCHEMY_POWERS.get(Metals.MetalType.TIN).get();
+			final FeruchemyManifestation tinF = FeruchemyManifestations.FERUCHEMY_MANIFESTATIONS.get(Metals.MetalType.TIN).get();
 
 			if (tinF.isStoring(playerSpiritweb) && tinF.canAfford(playerSpiritweb, true))
 			{

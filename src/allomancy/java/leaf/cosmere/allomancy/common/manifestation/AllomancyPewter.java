@@ -78,7 +78,7 @@ public class AllomancyPewter extends AllomancyManifestation
 
 		SpiritwebCapability.get(livingEntity).ifPresent(data ->
 		{
-			AllomancyPewter pewter = (AllomancyPewter) AllomancyManifestations.ALLOMANCY_POWERS.get(Metals.MetalType.PEWTER).get();
+			AllomancyPewter pewter = (AllomancyPewter) AllomancyManifestations.ALLOMANCY_MANIFESTATIONS.get(Metals.MetalType.PEWTER).get();
 			if (pewter.isAllomanticBurn(data))
 			{
 				float damage = event.getAmount();

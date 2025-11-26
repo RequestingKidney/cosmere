@@ -35,7 +35,7 @@ public class BronzeSeekerTooltip implements IEntityComponentProvider
 		//check the entity we are trying to
 		SpiritwebCapability.get(accessor.getPlayer()).ifPresent(clientPlayer ->
 		{
-			AllomancyBronze allomancyBronze = (AllomancyBronze) AllomancyManifestations.ALLOMANCY_POWERS.get(Metals.MetalType.BRONZE).get();
+			AllomancyBronze allomancyBronze = (AllomancyBronze) AllomancyManifestations.ALLOMANCY_MANIFESTATIONS.get(Metals.MetalType.BRONZE).get();
 			if (allomancyBronze.isMetalBurning(clientPlayer) || playerCreativeMode)
 			{
 				//check the entity we are trying to

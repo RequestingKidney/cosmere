@@ -48,8 +48,8 @@ public class AllomancyAtium extends AllomancyManifestation
 
 		SpiritwebCapability.get(event.getEntity()).ifPresent((targetData) ->
 		{
-			AllomancyManifestation atium = AllomancyManifestations.ALLOMANCY_POWERS.get(Metals.MetalType.ATIUM).get();
-			AllomancyManifestation electrum = AllomancyManifestations.ALLOMANCY_POWERS.get(Metals.MetalType.ELECTRUM).get();
+			AllomancyManifestation atium = AllomancyManifestations.ALLOMANCY_MANIFESTATIONS.get(Metals.MetalType.ATIUM).get();
+			AllomancyManifestation electrum = AllomancyManifestations.ALLOMANCY_MANIFESTATIONS.get(Metals.MetalType.ELECTRUM).get();
 
 			if (atium.isActive(targetData))
 			{

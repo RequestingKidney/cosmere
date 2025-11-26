@@ -49,7 +49,7 @@ public class PatchouliFeruchemyCategory
 		entries.add(Compounding);
 
 		//feruchemy
-		for (ManifestationRegistryObject<FeruchemyManifestation> manifestationRegistryObject : FeruchemyManifestations.FERUCHEMY_POWERS.values())
+		for (ManifestationRegistryObject<FeruchemyManifestation> manifestationRegistryObject : FeruchemyManifestations.FERUCHEMY_MANIFESTATIONS.values())
 		{
 			FeruchemyManifestation feruchemyManifestation = manifestationRegistryObject.get();
 			Metals.MetalType metalType = feruchemyManifestation.getMetalType();

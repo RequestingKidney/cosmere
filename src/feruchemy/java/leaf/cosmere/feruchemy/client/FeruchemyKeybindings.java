@@ -20,7 +20,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static leaf.cosmere.api.Constants.Strings.*;
-import static leaf.cosmere.feruchemy.common.registries.FeruchemyManifestations.FERUCHEMY_POWERS;
+import static leaf.cosmere.feruchemy.common.registries.FeruchemyManifestations.FERUCHEMY_MANIFESTATIONS;
 
 @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = Feruchemy.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class FeruchemyKeybindings
@@ -40,7 +40,7 @@ public class FeruchemyKeybindings
 	    for (Metals.MetalType metalType : FERUCHEMY_POWER.keySet())
 	    {
             KeyMapping key = FERUCHEMY_POWER.get(metalType);
-            FeruchemyManifestation manifest = FERUCHEMY_POWERS.get(metalType).getManifestation();
+            FeruchemyManifestation manifest = FERUCHEMY_MANIFESTATIONS.get(metalType).getManifestation();
             event.register(key);
             Activator entry = new Activator(key, manifest);
             entry.setCategory("feruchemy");

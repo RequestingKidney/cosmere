@@ -102,7 +102,7 @@ public class AllomancyBronze extends AllomancyManifestation
 		}
 
 
-		final AllomancyManifestation bronzeAllomancyManifestation = AllomancyManifestations.ALLOMANCY_POWERS.get(Metals.MetalType.BRONZE).get();
+		final AllomancyManifestation bronzeAllomancyManifestation = AllomancyManifestations.ALLOMANCY_MANIFESTATIONS.get(Metals.MetalType.BRONZE).get();
 		//if the player does not have bronze, early exit
 		if (!bronzeAllomancyManifestation.isAllomanticBurn(seeker))
 		{

@@ -157,8 +157,8 @@ public class FeruchemyNicrosil extends FeruchemyManifestation
 			//don't disable nicrosil, because we want to keep storing
 			//don't disable aluminum, because we may be wanting to store without identity
 			final boolean invalidMetalToDisable =
-					manifestation == FeruchemyManifestations.FERUCHEMY_POWERS.get(Metals.MetalType.NICROSIL).get()
-							|| manifestation == FeruchemyManifestations.FERUCHEMY_POWERS.get(Metals.MetalType.ALUMINUM).get();
+					manifestation == FeruchemyManifestations.FERUCHEMY_MANIFESTATIONS.get(Metals.MetalType.NICROSIL).get()
+							|| manifestation == FeruchemyManifestations.FERUCHEMY_MANIFESTATIONS.get(Metals.MetalType.ALUMINUM).get();
 
 			if (attributeRegistryObject == null || invalidMetalToDisable)
 			{

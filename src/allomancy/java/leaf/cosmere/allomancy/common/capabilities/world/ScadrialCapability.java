@@ -214,7 +214,7 @@ public class ScadrialCapability implements IScadrial
 				if (iSpiritwebLazyOptional.isPresent())
 				{
 					var spiritweb = iSpiritwebLazyOptional.resolve();
-					final AllomancyManifestation tinAllomancy = AllomancyManifestations.ALLOMANCY_POWERS.get(Metals.MetalType.TIN).get();
+					final AllomancyManifestation tinAllomancy = AllomancyManifestations.ALLOMANCY_MANIFESTATIONS.get(Metals.MetalType.TIN).get();
 					//if tin allomancy exists in this mod pack and it's currently active
 					if (spiritweb.isPresent() && spiritweb.get() instanceof SpiritwebCapability data && tinAllomancy != null && tinAllomancy.isMetalBurning(data))
 					{

@@ -22,7 +22,7 @@ public class AllomancyManifestations
 
 
 	// Allomancy
-	public static final Map<Metals.MetalType, ManifestationRegistryObject<AllomancyManifestation>> ALLOMANCY_POWERS =
+	public static final Map<Metals.MetalType, ManifestationRegistryObject<AllomancyManifestation>> ALLOMANCY_MANIFESTATIONS =
 			Arrays.stream(EnumUtils.METAL_TYPES)
 					.filter(Metals.MetalType::hasAssociatedManifestation)
 					.collect(Collectors.toMap(

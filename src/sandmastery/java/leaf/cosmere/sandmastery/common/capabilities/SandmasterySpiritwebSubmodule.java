@@ -190,7 +190,7 @@ public class SandmasterySpiritwebSubmodule implements ISpiritwebSubmodule
 	}
 
 	@Override
-	public void GiveStartingItem(Player player)
+	public void giveStartingItem(Player player)
 	{
 		if (SandmasteryConfigs.SERVER.GIVE_QIDO_ON_FIRST_LOGIN.get())
 		{
@@ -201,7 +201,7 @@ public class SandmasterySpiritwebSubmodule implements ISpiritwebSubmodule
 	}
 
 	@Override
-	public void GiveStartingItem(Player player, Manifestation manifestation)
+	public void giveStartingItem(Player player, Manifestation manifestation)
 	{
 	}
 
