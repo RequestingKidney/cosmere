@@ -157,7 +157,7 @@ public class SpiritwebCapability implements ISpiritweb
 			for (CosmerePowerInstance cosmerePowerInstance : this.spiritwebPowers)
 			{
 				listtag.add(cosmerePowerInstance.serialize());
-				cosmerePowerInstance.getPower().removePower(this);
+				cosmerePowerInstance.grantPower(this);
 			}
 
 			nbt.put("SpiritwebPowers", listtag);
@@ -228,7 +228,7 @@ public class SpiritwebCapability implements ISpiritweb
 				CompoundTag compoundtag = listTag.getCompound(i);
 				CosmerePowerInstance cosmereEffectInstance = CosmerePowerInstance.deserialize(compoundtag);
 				this.spiritwebPowers.add(cosmereEffectInstance);
-				cosmereEffectInstance.getPower().grantPower(this);
+				cosmereEffectInstance.grantPower(this);
 			}
 		}
 
@@ -1009,20 +1009,20 @@ public class SpiritwebCapability implements ISpiritweb
 	public void giveCosmerePower(CosmerePowerInstance cosmerePowerInstance)
 	{
 		spiritwebPowers.add(cosmerePowerInstance);
-		cosmerePowerInstance.getPower().grantPower(this);
+		cosmerePowerInstance.grantPower(this);
 	}
 
 	public void removeCosmerePower(CosmerePowerInstance cosmerePowerInstance)
 	{
 		spiritwebPowers.remove(cosmerePowerInstance);
-		cosmerePowerInstance.getPower().removePower(this);
+		cosmerePowerInstance.removePower(this);
 	}
 
 	public void clearCosmerePowers()
 	{
 		for (CosmerePowerInstance cosmerePowerInstance : spiritwebPowers)
 		{
-			cosmerePowerInstance.getPower().removePower(this);
+			cosmerePowerInstance.removePower(this);
 		}
 		spiritwebPowers.clear();
 	}

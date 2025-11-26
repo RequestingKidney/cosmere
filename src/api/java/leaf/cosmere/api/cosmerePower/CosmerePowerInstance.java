@@ -15,17 +15,28 @@ public class CosmerePowerInstance
 {
 	private CosmerePower power = null;
 	private UUID identity = Constants.NBT.UNKEYED_UUID;
-	private double strength = 0;
+	private int strength = 0;
 	private boolean isModifier = false;
 
 	public CosmerePowerInstance() {}
 
-	public CosmerePowerInstance(CosmerePower power, UUID identity, double strength, boolean isModifier)
+	public CosmerePowerInstance(CosmerePower power, UUID identity, int strength, boolean isModifier)
 	{
 		this.power = power;
 		this.identity = identity;
 		this.strength = strength;
 		this.isModifier = isModifier;
+	}
+
+	public void grantPower(ISpiritweb spiritweb)
+	{
+		if(power != null) power.grantPower(spiritweb, identity, strength, isModifier);
+	}
+
+	public void removePower(ISpiritweb spiritweb)
+	{
+		if(power != null) power.removePower(spiritweb, identity, isModifier);
+
 	}
 
 	public static CosmerePowerInstance deserialize(CompoundTag powerTag)
@@ -37,7 +48,7 @@ public class CosmerePowerInstance
 		cosmerePowerInstance.power = CosmereAPI.cosmerePowerRegistry().getValue(new ResourceLocation(powerId));
 
 		cosmerePowerInstance.identity = powerTag.getUUID("powerIdentity");
-		cosmerePowerInstance.strength = powerTag.getDouble("powerStrength");
+		cosmerePowerInstance.strength = powerTag.getInt("powerStrength");
 		cosmerePowerInstance.isModifier = powerTag.getBoolean("powerModifier");
 
 		return cosmerePowerInstance;
@@ -50,7 +61,7 @@ public class CosmerePowerInstance
 
 		powerTag.putString("powerId", power.getRegistryName().toString());
 		powerTag.putUUID("powerIdentity", identity);
-		powerTag.putDouble("powerStrength", strength);
+		powerTag.putInt("powerStrength", strength);
 		powerTag.putBoolean("powerModifier", isModifier);
 
 		return powerTag;
@@ -81,7 +92,7 @@ public class CosmerePowerInstance
 		return strength;
 	}
 
-	public void setStrength(double strength)
+	public void setStrength(int strength)
 	{
 		this.strength = strength;
 	}
