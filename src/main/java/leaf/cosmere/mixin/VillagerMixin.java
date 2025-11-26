@@ -37,7 +37,7 @@ public class VillagerMixin
 						SpiritwebCapability.get(offspring).ifPresent(offspringSW ->
 						{
 							final SpiritwebCapability offspringCap = (SpiritwebCapability) offspringSW;
-							offspringCap.clearManifestations();
+							offspringCap.clearCosmerePowers();
 							offspringCap.setHasBeenInitialized(true);
 
 							if (MathHelper.randomBool())//todo config for chance for offspring to also have powers

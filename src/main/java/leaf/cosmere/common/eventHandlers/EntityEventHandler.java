@@ -5,6 +5,7 @@
 package leaf.cosmere.common.eventHandlers;
 
 import leaf.cosmere.api.CosmereAPI;
+import leaf.cosmere.api.ISpiritwebSubmodule;
 import leaf.cosmere.api.Manifestations;
 import leaf.cosmere.api.Metals;
 import leaf.cosmere.api.helpers.EntityHelper;
@@ -161,6 +162,13 @@ public class EntityEventHandler
 				addOtherPowers(spiritwebCapability);
 				return;
 			}
+		}
+
+		// THIS IS THE ONLY WAY WE SHOULD BE GIVING STARTING POWERS
+		// EVERYTHING ELSE BELOW SHOULD BE HANDLED BY SUBMODULES
+		for(ISpiritwebSubmodule submodule : spiritwebCapability.getSubmodules())
+		{
+			submodule.giveEntityStartingManifestation(entity, spiritwebCapability);
 		}
 
 		final Integer chanceOfFullPowers = CosmereConfigs.SERVER_CONFIG.FULLBORN_POWERS_CHANCE.get();

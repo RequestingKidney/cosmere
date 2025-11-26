@@ -226,7 +226,7 @@ public class ChooseMetalbornPowersCommand extends ModCommand
 		{
 			SpiritwebCapability.get(player).ifPresent(spiritweb ->
 			{
-				spiritweb.clearManifestations();
+				spiritweb.clearCosmerePowers();
 				((SpiritwebCapability) spiritweb).setHasBeenInitialized(false);
 				spiritweb.syncToClients(null);
 

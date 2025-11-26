@@ -6,6 +6,7 @@ package leaf.cosmere.api;
 
 import leaf.cosmere.api.manifestation.Manifestation;
 import leaf.cosmere.api.spiritweb.ISpiritweb;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -52,8 +53,11 @@ public interface ISpiritwebSubmodule
 
 	default void resetOnDeath(ISpiritweb spiritweb)
 	{
-
 	}
 
 	void drainInvestiture(ISpiritweb data, double strength);
+
+	default void giveEntityStartingManifestation(LivingEntity entity, ISpiritweb spiritweb)
+	{
+	}
 }

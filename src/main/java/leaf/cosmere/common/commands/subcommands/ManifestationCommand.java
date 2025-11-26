@@ -82,7 +82,7 @@ public class ManifestationCommand extends ModCommand
 			SpiritwebCapability.get(player).ifPresent(iSpiritweb ->
 			{
 				CommandSourceStack source = context.getSource();
-				iSpiritweb.clearManifestations();
+				iSpiritweb.clearCosmerePowers();
 				iSpiritweb.syncToClients(null);
 				MutableComponent playerTextObject = TextHelper.getPlayerTextObject(context.getSource().getLevel(), player.getUUID());
 				source.sendSuccess(() -> Component.translatable(Constants.Strings.POWER_SET_SUCCESS, playerTextObject), false);
@@ -101,7 +101,7 @@ public class ManifestationCommand extends ModCommand
 			SpiritwebCapability.get(player).ifPresent(iSpiritweb ->
 			{
 				CommandSourceStack source = context.getSource();
-				iSpiritweb.clearManifestations();
+				iSpiritweb.clearCosmerePowers();
 				EntityEventHandler.giveEntityStartingManifestation(player, (SpiritwebCapability) iSpiritweb);
 				//set to none so that it auto updates to the new available ones on sync
 				iSpiritweb.setSelectedManifestation(ManifestationRegistry.NONE.get());
