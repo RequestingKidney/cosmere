@@ -7,12 +7,16 @@ package leaf.cosmere.sandmastery.common.capabilities;
 import leaf.cosmere.api.CosmereAPI;
 import leaf.cosmere.api.ISpiritwebSubmodule;
 import leaf.cosmere.api.Manifestations;
+import leaf.cosmere.api.Metals;
+import leaf.cosmere.api.cosmerePower.CosmerePowerInstance;
 import leaf.cosmere.api.helpers.CompoundNBTHelper;
 import leaf.cosmere.api.helpers.EffectsHelper;
 import leaf.cosmere.api.helpers.PlayerHelper;
 import leaf.cosmere.api.manifestation.Manifestation;
+import leaf.cosmere.api.math.MathHelper;
 import leaf.cosmere.api.spiritweb.ISpiritweb;
 import leaf.cosmere.client.Keybindings;
+import leaf.cosmere.common.config.CosmereConfigs;
 import leaf.cosmere.sandmastery.client.SandmasteryKeybindings;
 import leaf.cosmere.sandmastery.common.Sandmastery;
 import leaf.cosmere.sandmastery.common.config.SandmasteryConfigs;
@@ -21,6 +25,7 @@ import leaf.cosmere.sandmastery.common.network.packets.SyncMasteryBindsMessage;
 import leaf.cosmere.sandmastery.common.registries.SandmasteryAttributes;
 import leaf.cosmere.sandmastery.common.registries.SandmasteryEffects;
 import leaf.cosmere.sandmastery.common.registries.SandmasteryItems;
+import leaf.cosmere.sandmastery.common.registries.SandmasteryPowers;
 import leaf.cosmere.sandmastery.common.utils.SandmasteryConstants;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
@@ -400,5 +405,19 @@ public class SandmasterySpiritwebSubmodule implements ISpiritwebSubmodule
 		this.hotkeyFlags = flags;
 		//update the tag value for later serialization.
 		this.sandmasteryTag.putInt("hotkeys", hotkeyFlags);
+	}
+
+	@Override
+	public void giveEntityStartingManifestation(LivingEntity entity, ISpiritweb spiritweb)
+	{
+		final int ribbonCount = MathHelper.randomInt(1, 24);
+		CosmerePowerInstance cosmerePowerInstance = new CosmerePowerInstance(
+				SandmasteryPowers.SANDMASTERY_POWER.get(),
+				entity.getUUID(),
+				ribbonCount,
+				false
+		);
+		spiritweb.giveCosmerePower(cosmerePowerInstance);
+		CosmereAPI.logger.info("Setting entity {} ribbons to {}", spiritweb.getLiving().getName().getString(), ribbonCount);
 	}
 }

@@ -14,6 +14,7 @@ import leaf.cosmere.api.ISpiritwebSubmodule;
 import leaf.cosmere.api.Manifestations;
 import leaf.cosmere.api.cosmereEffect.CosmereEffect;
 import leaf.cosmere.api.cosmereEffect.CosmereEffectInstance;
+import leaf.cosmere.api.cosmerePower.CosmerePower;
 import leaf.cosmere.api.cosmerePower.CosmerePowerInstance;
 import leaf.cosmere.api.manifestation.Manifestation;
 import leaf.cosmere.api.spiritweb.ISpiritweb;
@@ -90,7 +91,7 @@ public class SpiritwebCapability implements ISpiritweb
 
 	private final Map<UUID, CosmereEffectInstance> activeEffects = Maps.newHashMap();
 
-	private final Set<CosmerePowerInstance> spiritwebPowers = new HashSet<>();
+	private final List<CosmerePowerInstance> spiritwebPowers = new ArrayList<>();
 
 	private final Map<Manifestations.ManifestationTypes, ISpiritwebSubmodule> spiritwebSubmodules;
 
@@ -1012,10 +1013,17 @@ public class SpiritwebCapability implements ISpiritweb
 		cosmerePowerInstance.grantPower(this);
 	}
 
-	public void removeCosmerePower(CosmerePowerInstance cosmerePowerInstance)
+	public void removeCosmerePower(CosmerePower cosmerePower)
 	{
-		spiritwebPowers.remove(cosmerePowerInstance);
-		cosmerePowerInstance.removePower(this);
+		for(CosmerePowerInstance spiritwebPower : spiritwebPowers)
+		{
+			if(spiritwebPower.getPower() == cosmerePower)
+			{
+				spiritwebPower.removePower(this);
+				spiritwebPowers.remove(spiritwebPower);
+				return;
+			}
+		}
 	}
 
 	public void clearCosmerePowers()
@@ -1025,5 +1033,15 @@ public class SpiritwebCapability implements ISpiritweb
 			cosmerePowerInstance.removePower(this);
 		}
 		spiritwebPowers.clear();
+	}
+
+	public List<CosmerePowerInstance> getCosmerePowers()
+	{
+		return this.spiritwebPowers;
+	}
+
+	public List<CosmerePowerInstance> getCosmerePowers(boolean ignoreTemporaryPowers)
+	{
+
 	}
 }

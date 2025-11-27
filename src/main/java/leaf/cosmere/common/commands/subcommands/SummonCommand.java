@@ -8,6 +8,8 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import leaf.cosmere.api.cosmerePower.CosmerePower;
+import leaf.cosmere.api.cosmerePower.CosmerePowerInstance;
 import leaf.cosmere.api.manifestation.Manifestation;
 import leaf.cosmere.common.cap.entity.SpiritwebCapability;
 import leaf.cosmere.common.commands.arguments.ManifestationsArgumentType;
@@ -37,11 +39,11 @@ public class SummonCommand extends ModCommand
 
 	private static int spawnEntity(CommandContext<CommandSourceStack> context) throws CommandSyntaxException
 	{
-		Manifestation manifestation = null;
+		CosmerePower cosmerePower = null;
 
 		try
 		{
-			manifestation = context.getArgument("manifestation", Manifestation.class);
+			cosmerePower = context.getArgument("cosmerePower", CosmerePower.class);
 		}
 		catch (Exception ignored)
 		{
@@ -61,10 +63,16 @@ public class SummonCommand extends ModCommand
 		entity.moveTo(serverPlayer.position());
 		context.getSource().getLevel().addFreshEntity(entity);
 
-		final Manifestation finalManifestation = manifestation;
+		CosmerePower finalCosmerePower = cosmerePower;
 		SpiritwebCapability.get(entity).ifPresent((spiritweb) ->
 		{
-			spiritweb.giveManifestation(finalManifestation, 10);
+			CosmerePowerInstance cosmerePowerInstance = new CosmerePowerInstance(
+					finalCosmerePower,
+					entity.getUUID(),
+					10,
+					false
+			);
+			spiritweb.giveCosmerePower(cosmerePowerInstance);
 			spiritweb.syncToClients(null);
 		});
 

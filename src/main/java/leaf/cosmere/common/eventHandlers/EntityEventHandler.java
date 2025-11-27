@@ -146,48 +146,20 @@ public class EntityEventHandler
 				|| entity instanceof AbstractPiglin;
 	}
 
-	//todo eventually we want to replace this.
-	// Maybe an origins style menu that lets you choose a randomised power by world type
-	// Each mod could report the available powers, and what other mods they're allowed to spawn powers with (allomancy/feruchemy)
 	public static void giveEntityStartingManifestation(LivingEntity entity, SpiritwebCapability spiritwebCapability)
 	{
-		boolean isPlayerEntity = entity instanceof Player;
-
-		if (isPlayerEntity)
-		{
-			if (!MathHelper.chance(CosmereConfigs.SERVER_CONFIG.PLAYER_METALBORN_CHANCE.get()))
-			{
-				// if player isn't metalborn, no need to continue
-				// a bit messy to do this but oh well, we want to change it anyway      // tech debt? what's that?
-				addOtherPowers(spiritwebCapability);
-				return;
-			}
-		}
-
 		// THIS IS THE ONLY WAY WE SHOULD BE GIVING STARTING POWERS
 		// EVERYTHING ELSE BELOW SHOULD BE HANDLED BY SUBMODULES
-		for(ISpiritwebSubmodule submodule : spiritwebCapability.getSubmodules())
+		spiritwebCapability.getSubmodules().forEach(((manifestationTypes, iSpiritwebSubmodule) ->
 		{
-			submodule.giveEntityStartingManifestation(entity, spiritwebCapability);
-		}
-		addOtherPowers(spiritwebCapability);
-	}
-
-	public static void addOtherPowers(SpiritwebCapability spiritwebCapability)
-	{
-		for (Manifestation manifestation : CosmereAPI.manifestationRegistry())
-		{
-			if (manifestation.getManifestationType() == Manifestations.ManifestationTypes.SANDMASTERY)
+			if(!MathHelper.chance(CosmereConfigs.SERVER_CONFIG.PLAYER_METALBORN_CHANCE.get()) &&
+					(manifestationTypes == Manifestations.ManifestationTypes.ALLOMANCY || manifestationTypes == Manifestations.ManifestationTypes.FERUCHEMY))
 			{
-				final int ribbonCount = MathHelper.randomInt(1, 24);
-				spiritwebCapability.giveManifestation(manifestation, ribbonCount);
-				//Break here because there is only one attribute for ribbons.
-				CosmereAPI.logger.info("Setting entity {} ribbons to {}", spiritwebCapability.getLiving().getName().getString(), ribbonCount);
-				break;
+				return;
 			}
-		}
+			iSpiritwebSubmodule.giveEntityStartingManifestation(entity, spiritwebCapability);
+		}));
 	}
-
 
 	@SubscribeEvent
 	public static void onLivingTick(LivingEvent.LivingTickEvent event)

@@ -6,6 +6,7 @@ package leaf.cosmere.hemalurgy.common.items;
 
 import com.google.common.collect.Multimap;
 import leaf.cosmere.api.*;
+import leaf.cosmere.api.cosmerePower.CosmerePowerInstance;
 import leaf.cosmere.api.helpers.CompoundNBTHelper;
 import leaf.cosmere.api.helpers.StackNBTHelper;
 import leaf.cosmere.api.manifestation.Manifestation;
@@ -76,11 +77,11 @@ public interface IHemalurgicInfo
 			return;
 		}
 
-		List<Manifestation> manifestationsFound = new ArrayList<>();
+		List<CosmerePowerInstance> powersFound = new ArrayList<>();
 		SpiritwebCapability.get(entityKilled).ifPresent(entityKilledSpiritWeb ->
 		{
 			//only grab innate manifestations, not ones added by hemalurgy
-			manifestationsFound.addAll(entityKilledSpiritWeb.getAvailableManifestations(true));
+			powersFound.addAll(entityKilledSpiritWeb.getCosmerePowers());
 
 
 			if (!manifestationsFound.isEmpty())

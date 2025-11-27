@@ -4,6 +4,7 @@
 
 package leaf.cosmere.api;
 
+import leaf.cosmere.api.cosmerePower.CosmerePower;
 import leaf.cosmere.api.manifestation.Manifestation;
 import net.minecraft.resources.ResourceLocation;
 
@@ -108,6 +109,35 @@ public class Manifestations
 					break;
 			}
 			return CosmereAPI.manifestationRegistry().getValue(new ResourceLocation("cosmere", "none"));
+		}
+
+		public CosmerePower getCosmerePower(int powerID)
+		{
+			switch (this)
+			{
+				case ALLOMANCY:
+				case FERUCHEMY:
+					Optional<Metals.MetalType> metalType = Metals.MetalType.valueOf(powerID);
+					if (metalType.isPresent())
+					{
+						return CosmereAPI.cosmerePowerRegistry().getValue(new ResourceLocation(this.getName(), metalType.get().getName()));
+					}
+					break;
+				case SURGEBINDING:
+					Optional<Roshar.Surges> value = Roshar.Surges.valueOf(powerID);
+					if (value.isPresent())
+					{
+						return CosmereAPI.cosmerePowerRegistry().getValue(new ResourceLocation(this.getName(), value.get().getName()));
+					}
+					break;
+				case AON_DOR:
+					break;
+				case AWAKENING:
+					break;
+				case SANDMASTERY:
+					return CosmereAPI.cosmerePowerRegistry().getValue(new ResourceLocation(this.getName(), this.getName()));
+			}
+			return CosmereAPI.cosmerePowerRegistry().getValue(new ResourceLocation("cosmere", "none"));
 		}
 	}
 

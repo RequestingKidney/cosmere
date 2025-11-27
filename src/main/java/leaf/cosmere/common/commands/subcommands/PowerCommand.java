@@ -9,6 +9,8 @@ import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import leaf.cosmere.api.Constants;
+import leaf.cosmere.api.cosmerePower.CosmerePower;
+import leaf.cosmere.api.cosmerePower.CosmerePowerInstance;
 import leaf.cosmere.api.manifestation.Manifestation;
 import leaf.cosmere.api.text.TextHelper;
 import leaf.cosmere.common.cap.entity.SpiritwebCapability;
@@ -24,7 +26,7 @@ import net.minecraft.server.level.ServerPlayer;
 
 import java.util.Collection;
 
-public class ManifestationCommand extends ModCommand
+public class PowerCommand extends ModCommand
 {
 
 	@Override
@@ -124,17 +126,23 @@ public class ManifestationCommand extends ModCommand
 		for (ServerPlayer player : players)
 		{
 			CommandSourceStack source = context.getSource();
-			Manifestation manifestation = context.getArgument("manifestation", Manifestation.class);
+			CosmerePower cosmerePower = context.getArgument("cosmerePower", CosmerePower.class);
 
 			MutableComponent playerText = TextHelper.getPlayerTextObject(player.serverLevel(), player.getUUID());
 
-			MutableComponent manifestationText = (MutableComponent) manifestation.getTextComponent();
+			MutableComponent cosmerePowerText = (MutableComponent) cosmerePower.getTextComponent();
 
 			SpiritwebCapability.get(player).ifPresent((spiritweb) ->
 			{
 				//todo change this so that the user sets the strength in the command
-				spiritweb.giveManifestation(manifestation, 9);
-				source.sendSuccess(() -> Component.translatable(Constants.Strings.POWER_SET_SUCCESS, playerText, manifestationText), false);
+				CosmerePowerInstance cosmerePowerInstance = new CosmerePowerInstance(
+						cosmerePower,
+						player.getUUID(),
+						9,
+						false
+				);
+				spiritweb.giveCosmerePower(cosmerePowerInstance);
+				source.sendSuccess(() -> Component.translatable(Constants.Strings.POWER_SET_SUCCESS, playerText, cosmerePowerText), false);
 				ReportPowersFoundOnPlayer(context, player);
 				spiritweb.syncToClients(null);
 			});
@@ -149,17 +157,17 @@ public class ManifestationCommand extends ModCommand
 		for (ServerPlayer player : players)
 		{
 			CommandSourceStack source = context.getSource();
-			Manifestation manifestation = context.getArgument("manifestation", Manifestation.class);
+			CosmerePower cosmerePower = context.getArgument("cosmerePower", CosmerePower.class);
 
 			MutableComponent playerText = TextHelper.getPlayerTextObject(source.getLevel(), player.getUUID());
 
-			MutableComponent manifestationText = (MutableComponent) manifestation.getTextComponent();
+			MutableComponent cosmerePowerText = (MutableComponent) cosmerePower.getTextComponent();
 
 			SpiritwebCapability.get(player).ifPresent((spiritweb) ->
 			{
-				spiritweb.removeManifestation(manifestation);
+				spiritweb.removeCosmerePower(cosmerePower);
 				spiritweb.syncToClients(null);
-				source.sendSuccess(() -> Component.translatable(Constants.Strings.POWER_SET_SUCCESS, playerText, manifestationText), false);
+				source.sendSuccess(() -> Component.translatable(Constants.Strings.POWER_SET_SUCCESS, playerText, cosmerePowerText), false);
 				ReportPowersFoundOnPlayer(context, player);
 			});
 		}
@@ -170,32 +178,32 @@ public class ManifestationCommand extends ModCommand
 	{
 		return Commands.literal("powers")
 				.then(Commands.literal("check")
-						.executes(ManifestationCommand::check)
+						.executes(PowerCommand::check)
 						.then(Commands.argument("target", EntityArgument.players())
 								.requires(context -> context.hasPermission(2))
-								.executes(ManifestationCommand::check)))
+								.executes(PowerCommand::check)))
 				.then(Commands.literal("clear")
 						.requires(context -> context.hasPermission(2))
-						.executes(ManifestationCommand::clear)
+						.executes(PowerCommand::clear)
 						.then(Commands.argument("target", EntityArgument.players())
-								.executes(ManifestationCommand::clear)))
+								.executes(PowerCommand::clear)))
 				.then(Commands.literal("reroll")
 						.requires(context -> context.hasPermission(2))
-						.executes(ManifestationCommand::reroll)
+						.executes(PowerCommand::reroll)
 						.then(Commands.argument("target", EntityArgument.players())
-								.executes(ManifestationCommand::reroll)))
+								.executes(PowerCommand::reroll)))
 				.then(Commands.literal("give")
 						.requires(context -> context.hasPermission(2))
 						.then(Commands.argument("manifestation", ManifestationsArgumentType.createArgument())
-								.executes(ManifestationCommand::give)
+								.executes(PowerCommand::give)
 								.then(Commands.argument("target", EntityArgument.players())
-										.executes(ManifestationCommand::give))))
+										.executes(PowerCommand::give))))
 				.then(Commands.literal("remove")
 						.requires(context -> context.hasPermission(2))
 						.then(Commands.argument("manifestation", ManifestationsArgumentType.createArgument())
-								.executes(ManifestationCommand::remove)
+								.executes(PowerCommand::remove)
 								.then(Commands.argument("target", EntityArgument.players())
-										.executes(ManifestationCommand::remove))))
+										.executes(PowerCommand::remove))))
 				; // end add
 	}
 }

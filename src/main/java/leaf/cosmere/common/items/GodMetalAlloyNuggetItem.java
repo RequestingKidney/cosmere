@@ -1,11 +1,14 @@
 package leaf.cosmere.common.items;
 
-import leaf.cosmere.api.IGrantsManifestations;
+import leaf.cosmere.api.IGrantsPowers;
 import leaf.cosmere.api.IHasSize;
 import leaf.cosmere.api.Manifestations;
 import leaf.cosmere.api.Metals;
+import leaf.cosmere.api.cosmerePower.CosmerePower;
+import leaf.cosmere.api.cosmerePower.CosmerePowerInstance;
 import leaf.cosmere.api.manifestation.Manifestation;
 import leaf.cosmere.common.cap.entity.SpiritwebCapability;
+import leaf.cosmere.common.registry.CosmerePowersRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -25,7 +28,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GodMetalAlloyNuggetItem extends AlloyNuggetItem implements IHasSize, IGrantsManifestations
+public class GodMetalAlloyNuggetItem extends AlloyNuggetItem implements IHasSize, IGrantsPowers
 {
 	public static int MIN_SIZE = 1;
 	public static int MAX_SIZE = 16;
@@ -71,16 +74,16 @@ public class GodMetalAlloyNuggetItem extends AlloyNuggetItem implements IHasSize
 		tooltip.add(Component.literal("Size: ").withStyle(ChatFormatting.WHITE).append(
 				Component.literal(size + "/" + MAX_SIZE).withStyle(ChatFormatting.GRAY)));
 
-		ArrayList<Manifestation> manifestations = determineManifestations(stack);
+		ArrayList<CosmerePower> cosmerePowers = determinePowers(stack);
 
-		if (!manifestations.isEmpty() & size != null)
+		if (!cosmerePowers.isEmpty() & size != null)
 		{
 			tooltip.add(Component.empty());
 			tooltip.add(Component.literal("When consumed:").withStyle(ChatFormatting.GOLD));
-			for (Manifestation manifestation : manifestations)
+			for (CosmerePower cosmerePower : cosmerePowers)
 			{
 				tooltip.add(Component.literal("+" + size + " ").append(
-								Component.translatable(manifestation.getTranslationKey()))
+								Component.translatable(cosmerePower.getTranslationKey()))
 						.withStyle(ChatFormatting.BLUE));
 			}
 		}
@@ -101,60 +104,41 @@ public class GodMetalAlloyNuggetItem extends AlloyNuggetItem implements IHasSize
 	// https://wob.coppermind.net/events/361-skyward-pre-release-ama/#e11225
 	// Mixing Lerasium with other god metals or magic systems metals could create connections
 	// for new Investiture sources and new Manifestations
-	public ArrayList<Manifestation> determineManifestations(ItemStack itemStack)
+	public ArrayList<CosmerePower> determinePowers(ItemStack itemStack)
 	{
-		ArrayList<Manifestation> manifestations = new ArrayList<>();
+		ArrayList<CosmerePower> cosmerePowers = new ArrayList<>();
 
-		Manifestation manifestation;
+		CosmerePower cosmerePower;
 		if (this.getMetalType() == Metals.MetalType.LERASIUM)
 		{
-			manifestation = Manifestations.ManifestationTypes.ALLOMANCY.getManifestation(alloyedMetalType.getID());
-			if (manifestation.getManifestationType() != Manifestations.ManifestationTypes.NONE)
+			cosmerePower = Manifestations.ManifestationTypes.ALLOMANCY.getCosmerePower(alloyedMetalType.getID());
+			if (cosmerePower != CosmerePowersRegistry.NONE.get())
 			{
-				manifestations.add(manifestation);
+				cosmerePowers.add(cosmerePower);
 			}
 
 		}
 		else if (this.getMetalType() == Metals.MetalType.LERASATIUM)
 		{
-			manifestation = Manifestations.ManifestationTypes.FERUCHEMY.getManifestation(alloyedMetalType.getID());
-			if (manifestation.getManifestationType() != Manifestations.ManifestationTypes.NONE)
+			cosmerePower = Manifestations.ManifestationTypes.FERUCHEMY.getCosmerePower(alloyedMetalType.getID());
+			if (cosmerePower != CosmerePowersRegistry.NONE.get())
 			{
-				manifestations.add(manifestation);
+				cosmerePowers.add(cosmerePower);
 			}
 		}
-		return manifestations;
+		return cosmerePowers;
 	}
 
 	@Override
-	public void grantManifestations(LivingEntity livingEntity, ArrayList<Manifestation> manifestations, int strength)
+	public void grantPowers(LivingEntity livingEntity, ArrayList<CosmerePowerInstance> cosmerePowerInstances)
 	{
 		SpiritwebCapability.get(livingEntity).ifPresent(iSpiritweb ->
 		{
 			SpiritwebCapability spiritweb = (SpiritwebCapability) iSpiritweb;
 
-			for(Manifestation manifestation: manifestations)
+			for(CosmerePowerInstance cosmerePowerInstance: cosmerePowerInstances)
 			{
-				int currentStrength = 0;
-				if(!(manifestation.getAttribute() instanceof RangedAttribute attribute)) return;
-				AttributeInstance attributeInstance = livingEntity.getAttribute(attribute);
-				if(attributeInstance != null) {
-					currentStrength = (int) attributeInstance.getValue();
-				}
-
-				// Let's ensure not to exceed the base value if it's out of range,
-				// even if it will get sanitized
-				int newStrength = strength + currentStrength;
-				if(newStrength < attribute.getMinValue())
-				{
-					newStrength = (int) attribute.getMinValue();
-				}
-				else if (newStrength > attribute.getMaxValue())
-				{
-					newStrength = (int) attribute.getMaxValue();
-				}
-
-				spiritweb.giveManifestation(manifestation, newStrength);
+				spiritweb.giveCosmerePower(cosmerePowerInstance);
 			}
 
 			if (livingEntity instanceof ServerPlayer serverPlayer)

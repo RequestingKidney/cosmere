@@ -9,6 +9,7 @@ import leaf.cosmere.api.ISpiritwebSubmodule;
 import leaf.cosmere.api.Manifestations;
 import leaf.cosmere.api.cosmereEffect.CosmereEffect;
 import leaf.cosmere.api.cosmereEffect.CosmereEffectInstance;
+import leaf.cosmere.api.cosmerePower.CosmerePower;
 import leaf.cosmere.api.cosmerePower.CosmerePowerInstance;
 import leaf.cosmere.api.manifestation.Manifestation;
 import net.minecraft.nbt.CompoundTag;
@@ -97,9 +98,13 @@ public interface ISpiritweb extends INBTSerializable<CompoundTag>
 
 	void setHasBeenInitialized(boolean hasBeenInitialized);
 
+	List<CosmerePowerInstance> getCosmerePowers();
+
+	List<CosmerePowerInstance> getCosmerePowers(boolean ignoreTemporaryPowers);
+
 	void giveCosmerePower(CosmerePowerInstance cosmerePowerInstance);
 
-	void removeCosmerePower(CosmerePowerInstance cosmerePowerInstance);
+	void removeCosmerePower(CosmerePower cosmerePower);
 
 	void clearCosmerePowers();
 }

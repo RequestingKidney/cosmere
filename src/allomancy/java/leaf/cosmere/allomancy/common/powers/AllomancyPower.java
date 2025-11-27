@@ -12,6 +12,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 
 import java.util.UUID;
 
@@ -44,24 +45,39 @@ public class AllomancyPower extends CosmerePower
 	{
 		LivingEntity livingEntity = spiritweb.getLiving();
 		Manifestation manifestation = AllomancyManifestations.ALLOMANCY_MANIFESTATIONS.get(metalType).get();
-		final Attribute attribute = manifestation.getAttribute();
+		final RangedAttribute attribute = (RangedAttribute) manifestation.getAttribute();
 		if (attribute == null) return;
 
 		AttributeInstance manifestationAttribute = livingEntity.getAttribute(attribute);
 		if(manifestationAttribute == null) return;
 
+		int newStrength = strength;
+		if(!isModifier)
+		{
+			newStrength += (int) manifestation.getStrength(spiritweb, true);
+
+			if (newStrength < attribute.getMinValue())
+			{
+				newStrength = (int) attribute.getMinValue();
+			}
+			else if (newStrength > attribute.getMaxValue())
+			{
+				newStrength = (int) attribute.getMaxValue();
+			}
+		}
+
 		if(isModifier)
 		{
 			AttributeModifier modifier = new AttributeModifier(
 					identity.toString(),
-					strength,
+					newStrength,
 					AttributeModifier.Operation.ADDITION
 			);
 			manifestationAttribute.addTransientModifier(modifier);
 		}
 		else
 		{
-			manifestationAttribute.setBaseValue(strength);
+			manifestationAttribute.setBaseValue(newStrength);
 		}
 
 		spiritweb.setHasBeenInitialized(true);

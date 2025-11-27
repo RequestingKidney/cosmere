@@ -29,7 +29,7 @@ import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static leaf.cosmere.common.commands.subcommands.ManifestationCommand.ReportPowersFoundOnPlayer;
+import static leaf.cosmere.common.commands.subcommands.PowerCommand.ReportPowersFoundOnPlayer;
 
 public class ChooseMetalbornPowersCommand extends ModCommand
 {
@@ -147,7 +147,7 @@ public class ChooseMetalbornPowersCommand extends ModCommand
 					// always give natural level manifestation; do nothing if cosmere:none is selected
 					if (!queueItem.allomanticPower.getManifestationType().equals(Manifestations.ManifestationTypes.NONE))
 					{
-						spiritweb.giveManifestation(queueItem.allomanticPower, 9);
+						//spiritweb.giveManifestation(queueItem.allomanticPower, 9);
 						source.sendSuccess(() -> Component.literal("Successfully added allomantic " + queueItem.allomanticPower.getName() + " to " + player.getName().getString()), false);   // todo localisation string
 
 						// give player metal vial according to what they chose
@@ -155,7 +155,7 @@ public class ChooseMetalbornPowersCommand extends ModCommand
 					}
 					if (!queueItem.feruchemicalPower.getManifestationType().equals(Manifestations.ManifestationTypes.NONE))
 					{
-						spiritweb.giveManifestation(queueItem.feruchemicalPower, 9);
+						//spiritweb.giveManifestation(queueItem.feruchemicalPower, 9);
 						source.sendSuccess(() -> Component.literal("Successfully added feruchemical " + queueItem.feruchemicalPower.getName() + " to " + player.getName().getString()), false);   // todo localisation string
 
 						// give player metal vial according to what they chose
@@ -163,7 +163,7 @@ public class ChooseMetalbornPowersCommand extends ModCommand
 					}
 
 					// adds non-metalborn powers
-					EntityEventHandler.addOtherPowers(spiritwebCap);
+					//EntityEventHandler.addOtherPowers(spiritwebCap);
 				}
 				else
 				{

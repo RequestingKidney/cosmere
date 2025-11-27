@@ -6,6 +6,8 @@ package leaf.cosmere.allomancy.common.utils;
 
 import leaf.cosmere.allomancy.common.capabilities.AllomancySpiritwebSubmodule;
 import leaf.cosmere.api.*;
+import leaf.cosmere.api.cosmerePower.CosmerePower;
+import leaf.cosmere.api.cosmerePower.CosmerePowerInstance;
 import leaf.cosmere.api.manifestation.Manifestation;
 import leaf.cosmere.api.text.TextHelper;
 import leaf.cosmere.common.cap.entity.SpiritwebCapability;
@@ -24,13 +26,23 @@ public class MiscHelper
 	{
 		if (livingEntity.level().isClientSide) return;
 
-		if(itemStack.getItem() instanceof IGrantsManifestations manifestingItem && itemStack.getItem() instanceof IHasSize sizeItem)
+		if(itemStack.getItem() instanceof IGrantsPowers manifestingItem && itemStack.getItem() instanceof IHasSize sizeItem)
 		{
 			Integer size = sizeItem.readMetalAlloySizeNbtData(itemStack);
 			if(size != null)
 			{
-				ArrayList<Manifestation> manifestations = manifestingItem.determineManifestations(itemStack);
-				manifestingItem.grantManifestations(livingEntity, manifestations, size);
+				ArrayList<CosmerePower> powers = manifestingItem.determinePowers(itemStack);
+				ArrayList<CosmerePowerInstance> powerInstances = new ArrayList<>();
+				for(CosmerePower power : powers)
+				{
+					powerInstances.add(new CosmerePowerInstance(
+						power,
+						livingEntity.getUUID(),
+						size,
+						false
+					));
+				}
+				manifestingItem.grantPowers(livingEntity, powerInstances);
 			}
 
 			//https://www.theoryland.com/intvmain.php?i=977#43
