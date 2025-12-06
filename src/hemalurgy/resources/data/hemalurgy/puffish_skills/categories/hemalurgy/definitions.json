@@ -1,0 +1,54 @@
+{
+	"hemalurgy.intent": {
+		"title": "Hemalurgy",
+		"icon": {
+			"type": "texture",
+			"data": {
+				"texture": "hemalurgy:textures/item/copper_spike.png"
+			}
+		},
+        "frame": {
+          "type": "advancement",
+          "data": {
+            "frame": "task"
+          }
+        },
+        "description": "The power of Ruin",
+		"rewards": [
+			{
+				"type": "puffish_skills:attribute",
+				"data": {
+					"attribute": "allomancy:copper",
+					"value": 1,
+					"operation": "addition"
+				}
+			}
+		]
+	},
+    "hemalurgy.command": {
+      "title": "Command",
+      "icon": {
+        "type": "texture",
+        "data": {
+          "texture": "hemalurgy:textures/item/lerasium_spike.png"
+        }
+      },
+      "frame": {
+        "type": "advancement",
+        "data": {
+          "frame": "goal"
+        }
+      },
+      "description": "Invoke control over the powers you steal",
+      "rewards": [
+        {
+          "type": "puffish_skills:attribute",
+          "data": {
+            "attribute": "allomancy:steel",
+            "value": 1,
+            "operation": "addition"
+          }
+        }
+      ]
+    }
+}

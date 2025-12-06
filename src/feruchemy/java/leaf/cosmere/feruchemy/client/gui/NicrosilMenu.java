@@ -136,12 +136,12 @@ public class NicrosilMenu extends Screen implements ISyncSpiritweb {
                                         .getStackInSlot(spiritwebPowerButton.getContainer().curioItemSlot);
                                 if (itemStack.getItem() instanceof IHoldsPowers item) {
                                     final Attribute attribute = heldButton.attribute;
-                                    AttributeInstance attributeInstance = player.getAttribute(attribute);
+                                    final Integer attributeStrength = heldButton.strength;
 
                                     if (item.trySetAttunedPlayer(itemStack, player)) {
                                         Cosmere.packetHandler().sendToServer(new StoreTapPowerMessage(
                                                 attribute,
-                                                attributeInstance.getBaseValue(),
+                                                attributeStrength,
                                                 spiritwebPowerButton.getContainer().curioItemSlot,
                                                 true,
                                                 spiritwebPowerButton.getSlotIndex()));
@@ -208,7 +208,24 @@ public class NicrosilMenu extends Screen implements ISyncSpiritweb {
     }
 
     @Override
-    public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
+    public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta)
+    {
+        if(heldButton != null)
+        {
+            int newStrength = heldButton.strength + (pDelta > 0 ? 1 : -1);
+            int currentStrength = (int) spiritweb.getLiving().getAttribute(heldButton.attribute).getBaseValue();
+
+            if (newStrength < 1)
+            {
+                newStrength = 1;
+            }
+            else if (newStrength > currentStrength)
+            {
+                newStrength = currentStrength;
+            }
+
+            heldButton.strength = newStrength;
+        }
         return true;
     }
 
@@ -221,7 +238,9 @@ public class NicrosilMenu extends Screen implements ISyncSpiritweb {
         getMinecraft().setScreen(null);
     }
 
-    private void applyLocalStore(PowerButton held, PowerButton targetSlot) {
+    private void applyLocalStore(PowerButton held, PowerButton targetSlot)
+    {
+        int currentStrength = (int) spiritweb.getLiving().getAttribute(held.attribute).getBaseValue();
         playerSpiritwebPowerButtons.removeIf(btn -> btn.getAttribute() == held.attribute);
 
 
@@ -254,6 +273,13 @@ public class NicrosilMenu extends Screen implements ISyncSpiritweb {
                         CosmereAttributeUtils.getManifestationType(availableAttributes.get(0).getAttribute());
             }
             setupAttributeButtons(availableAttributes, held.attribute, held.strength);
+        }
+        else
+        {
+            final List<AttributeInstance> availableAttributes = getAvailableAttributes();
+            playerSpiritwebPowerButtons.clear();
+            sidedMenuButtons.clear();
+            setupAttributeButtons(availableAttributes, held.attribute, currentStrength - held.strength);
         }
     }
 
@@ -358,6 +384,11 @@ public class NicrosilMenu extends Screen implements ISyncSpiritweb {
                 continue;
             }
 
+            if(spiritwebPower.getAttribute() == newPower && strength == 0)
+            {
+                continue;
+            }
+
             ManifestationTypes powerType = CosmereAttributeUtils.getManifestationType(spiritwebPower.getAttribute());
             foundPowerTypes.add(powerType);
 
@@ -373,12 +404,14 @@ public class NicrosilMenu extends Screen implements ISyncSpiritweb {
                         (int) spiritwebPower.getBaseValue());
                 playerSpiritwebPowerButtons.add(p);
             }
-        }
+        };
+        spiritwebPowers.sort(Comparator.comparingInt(spiritwebPower -> CosmereAttributeUtils.getAttributeId(spiritwebPower.getAttribute())));
 
         for (ManifestationTypes type : foundPowerTypes) {
             PowerButton btn = PowerButton.createSideMenuButton(type);
             sidedMenuButtons.add(btn);
         }
+        sidedMenuButtons.sort(Comparator.comparingInt(btn -> btn.manifestationType.getID()));
     }
 
     @Override

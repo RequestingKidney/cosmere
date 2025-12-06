@@ -1,0 +1,10 @@
+{
+	"title": "Hemalurgy",
+	"icon": {
+		"type": "texture",
+		"data": {
+			"texture": "hemalurgy:textures/item/steel_spike.png"
+		}
+	},
+	"background": "textures/gui/advancements/backgrounds/stone.png"
+}

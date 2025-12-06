@@ -1,21 +1,16 @@
 package leaf.cosmere.common.network.packets;
 
 import leaf.cosmere.common.charge.IHoldsPowers;
-import leaf.cosmere.api.manifestation.Manifestation;
 import leaf.cosmere.common.cap.entity.SpiritwebCapability;
 import leaf.cosmere.common.network.ICosmerePacket;
-import leaf.cosmere.common.registry.ManifestationRegistry;
 import leaf.cosmere.common.util.CosmereAttributeUtils;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.registries.ForgeRegistries;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 
@@ -60,7 +55,7 @@ public class StoreTapPowerMessage implements ICosmerePacket
 						{
 							if(item.trySetAttunedPlayer(itemStack, sender))
 							{
-								CosmereAttributeUtils.removeBaseAttribute(sender, attribute);
+								CosmereAttributeUtils.subtractFromBaseAttribute(sender, (RangedAttribute) attribute, (int) attributeStrength);
 								item.addPower(itemHandler.getEquippedCurios().getStackInSlot(curioSlot), attribute, (int) attributeStrength, attributeSlot);
 							}
 						}
@@ -78,7 +73,7 @@ public class StoreTapPowerMessage implements ICosmerePacket
 						{
 							if(item.getPlayerIsAttuned(itemStack, sender))
 							{
-								CosmereAttributeUtils.grantBaseAttribute(sender, (RangedAttribute) attribute, (int) attributeStrength);
+								CosmereAttributeUtils.addToBaseAttribute(sender, (RangedAttribute) attribute, (int) attributeStrength);
 								item.removePower(itemHandler.getEquippedCurios().getStackInSlot(curioSlot), attribute);
 							}
 						}

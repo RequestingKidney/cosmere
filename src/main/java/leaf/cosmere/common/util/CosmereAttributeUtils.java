@@ -41,6 +41,21 @@ public class CosmereAttributeUtils
 		}
 	}
 
+    public static int getAttributeId(Attribute attribute)
+    {
+        ManifestationTypes manifestationType = getManifestationType(attribute);
+        switch (manifestationType)
+        {
+            case ALLOMANCY:
+            case FERUCHEMY:
+                return Metals.MetalType.valueOf(attribute.getDescriptionId().split("\\.")[2].toUpperCase()).getID();
+            case SURGEBINDING:
+                return Roshar.Surges.valueOf(attribute.getDescriptionId().split("\\.")[2].toUpperCase()).getID();
+            default:
+                return 0;
+        }
+    }
+
 	public static Attribute getAttributeById(String id)
 	{
 		String[] attributeSections = id.split("\\.");
@@ -65,16 +80,25 @@ public class CosmereAttributeUtils
 		return ManifestationTypes.NONE;
 	}
 
-	public static void grantBaseAttribute(LivingEntity livingEntity, RangedAttribute attribute, int strength)
+    public static void removeBaseAttribute(LivingEntity livingEntity, Attribute attribute)
+    {
+        AttributeInstance entityAttributeInstance = livingEntity.getAttribute(attribute);
+        if (entityAttributeInstance == null)
+        {
+            return;
+        }
+        entityAttributeInstance.setBaseValue(0);
+    }
+
+	public static void addToBaseAttribute(LivingEntity livingEntity, RangedAttribute attribute, int strength)
 	{
-		int currentStrength = 0;
 		AttributeInstance entityAttributeInstance = livingEntity.getAttribute(attribute);
 		if (entityAttributeInstance == null)
 		{
 			return;
 		}
 
-		currentStrength = (int) entityAttributeInstance.getValue();
+        int currentStrength = (int) entityAttributeInstance.getValue();
 
 		// Let's ensure not to exceed the base value if it's out of range,
 		// even if it will get sanitized
@@ -91,13 +115,28 @@ public class CosmereAttributeUtils
 		entityAttributeInstance.setBaseValue(newStrength);
 	}
 
-	public static void removeBaseAttribute(LivingEntity livingEntity, Attribute attribute)
-	{
-		AttributeInstance entityAttributeInstance = livingEntity.getAttribute(attribute);
-		if (entityAttributeInstance == null)
-		{
-			return;
-		}
-		entityAttributeInstance.setBaseValue(0);
-	}
+    public static void subtractFromBaseAttribute(LivingEntity livingEntity, RangedAttribute attribute, int strength)
+    {
+        AttributeInstance entityAttributeInstance = livingEntity.getAttribute(attribute);
+        if (entityAttributeInstance == null)
+        {
+            return;
+        }
+
+        int currentStrength = (int) entityAttributeInstance.getValue();
+
+        // Let's ensure not to exceed the base value if it's out of range,
+        // even if it will get sanitized
+        int newStrength = currentStrength - strength;
+        if (newStrength < attribute.getMinValue())
+        {
+            newStrength = (int) attribute.getMinValue();
+        }
+        else if (newStrength > attribute.getMaxValue())
+        {
+            newStrength = (int) attribute.getMaxValue();
+        }
+
+        entityAttributeInstance.setBaseValue(newStrength);
+    }
 }

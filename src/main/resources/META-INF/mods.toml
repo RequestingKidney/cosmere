@@ -50,3 +50,9 @@ mandatory = false
 versionRange = "${jade_version}"
 ordering = "AFTER"
 side = "BOTH"
+[[dependencies.cosmere]]
+modId = "puffish_skills"
+mandatory = false
+versionRange = "${pufferfish_version}"
+ordering = "AFTER"
+side = "BOTH"
