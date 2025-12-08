@@ -1,0 +1,342 @@
+{
+  "feruchemy": {
+    "title": "Feruchemy",
+    "icon": {
+      "type": "texture",
+      "data": {
+        "texture": "feruchemy:textures/icon/feruchemy.png"
+      }
+    },
+    "frame": {
+      "type": "texture",
+      "data": {
+        "unlocked": "feruchemy:textures/gui/frames/unlocked.png",
+        "available": "feruchemy:textures/gui/frames/available.png"
+      }
+    },
+    "rewards": [],
+    "metadata": {
+      "icon": "0hl85rm48hvrmqiz"
+    }
+  },
+  "aluminum": {
+    "title": "Aluminum",
+    "icon": {
+      "type": "texture",
+      "data": {
+        "texture": "feruchemy:textures/icon/feruchemy/aluminum.png"
+      }
+    },
+    "frame": {
+      "type": "texture",
+      "data": {
+        "unlocked": "feruchemy:textures/gui/frames/unlocked.png",
+        "available": "feruchemy:textures/gui/frames/available.png"
+      }
+    },
+    "rewards": [],
+    "metadata": {
+      "icon": "6lcxcn9qhqvpu4hi"
+    }
+  },
+  "bendalloy": {
+    "title": "Bendalloy",
+    "icon": {
+      "type": "texture",
+      "data": {
+        "texture": "feruchemy:textures/icon/feruchemy/bendalloy.png"
+      }
+    },
+    "frame": {
+      "type": "texture",
+      "data": {
+        "unlocked": "feruchemy:textures/gui/frames/unlocked.png",
+        "available": "feruchemy:textures/gui/frames/available.png"
+      }
+    },
+    "rewards": [],
+    "metadata": {
+      "icon": "d5sq6gimljy5v9r3"
+    }
+  },
+  "brass": {
+    "title": "Brass",
+    "icon": {
+      "type": "texture",
+      "data": {
+        "texture": "feruchemy:textures/icon/feruchemy/brass.png"
+      }
+    },
+    "frame": {
+      "type": "texture",
+      "data": {
+        "unlocked": "feruchemy:textures/gui/frames/unlocked.png",
+        "available": "feruchemy:textures/gui/frames/available.png"
+      }
+    },
+    "rewards": [],
+    "metadata": {
+      "icon": "umluo49es4r7n9o4"
+    }
+  },
+  "bronze": {
+    "title": "Bronze",
+    "icon": {
+      "type": "texture",
+      "data": {
+        "texture": "feruchemy:textures/icon/feruchemy/bronze.png"
+      }
+    },
+    "frame": {
+      "type": "texture",
+      "data": {
+        "unlocked": "feruchemy:textures/gui/frames/unlocked.png",
+        "available": "feruchemy:textures/gui/frames/available.png"
+      }
+    },
+    "rewards": [],
+    "metadata": {
+      "icon": "y6yq908i1284ybnz"
+    }
+  },
+  "cadmium": {
+    "title": "Cadmium",
+    "icon": {
+      "type": "texture",
+      "data": {
+        "texture": "feruchemy:textures/icon/feruchemy/cadmium.png"
+      }
+    },
+    "frame": {
+      "type": "texture",
+      "data": {
+        "unlocked": "feruchemy:textures/gui/frames/unlocked.png",
+        "available": "feruchemy:textures/gui/frames/available.png"
+      }
+    },
+    "rewards": [],
+    "metadata": {
+      "icon": "js4lo4ga3t62xmey"
+    }
+  },
+  "chromium": {
+    "title": "Chromium",
+    "icon": {
+      "type": "texture",
+      "data": {
+        "texture": "feruchemy:textures/icon/feruchemy/chromium.png"
+      }
+    },
+    "frame": {
+      "type": "texture",
+      "data": {
+        "unlocked": "feruchemy:textures/gui/frames/unlocked.png",
+        "available": "feruchemy:textures/gui/frames/available.png"
+      }
+    },
+    "rewards": [],
+    "metadata": {
+      "icon": "vk6vfxoutm2jxdld"
+    }
+  },
+  "copper": {
+    "title": "Copper",
+    "icon": {
+      "type": "texture",
+      "data": {
+        "texture": "feruchemy:textures/icon/feruchemy/copper.png"
+      }
+    },
+    "frame": {
+      "type": "texture",
+      "data": {
+        "unlocked": "feruchemy:textures/gui/frames/unlocked.png",
+        "available": "feruchemy:textures/gui/frames/available.png"
+      }
+    },
+    "rewards": [],
+    "metadata": {
+      "icon": "buyb40p809xdahk7"
+    }
+  },
+  "duralumin": {
+    "title": "Duralumin",
+    "icon": {
+      "type": "texture",
+      "data": {
+        "texture": "feruchemy:textures/icon/feruchemy/duralumin.png"
+      }
+    },
+    "frame": {
+      "type": "texture",
+      "data": {
+        "unlocked": "feruchemy:textures/gui/frames/unlocked.png",
+        "available": "feruchemy:textures/gui/frames/available.png"
+      }
+    },
+    "rewards": [],
+    "metadata": {
+      "icon": "ng512hljcdpbht9d"
+    }
+  },
+  "electrum": {
+    "title": "Electrum",
+    "icon": {
+      "type": "texture",
+      "data": {
+        "texture": "feruchemy:textures/icon/feruchemy/electrum.png"
+      }
+    },
+    "frame": {
+      "type": "texture",
+      "data": {
+        "unlocked": "feruchemy:textures/gui/frames/unlocked.png",
+        "available": "feruchemy:textures/gui/frames/available.png"
+      }
+    },
+    "rewards": [],
+    "metadata": {
+      "icon": "abjz2avpnrfkd0d8"
+    }
+  },
+  "gold": {
+    "title": "Gold",
+    "icon": {
+      "type": "texture",
+      "data": {
+        "texture": "feruchemy:textures/icon/feruchemy/gold.png"
+      }
+    },
+    "frame": {
+      "type": "texture",
+      "data": {
+        "unlocked": "feruchemy:textures/gui/frames/unlocked.png",
+        "available": "feruchemy:textures/gui/frames/available.png"
+      }
+    },
+    "rewards": [],
+    "metadata": {
+      "icon": "el92ouoz20w0y5bo"
+    }
+  },
+  "iron": {
+    "title": "Iron",
+    "icon": {
+      "type": "texture",
+      "data": {
+        "texture": "feruchemy:textures/icon/feruchemy/iron.png"
+      }
+    },
+    "frame": {
+      "type": "texture",
+      "data": {
+        "unlocked": "feruchemy:textures/gui/frames/unlocked.png",
+        "available": "feruchemy:textures/gui/frames/available.png"
+      }
+    },
+    "rewards": [],
+    "metadata": {
+      "icon": "54ppmsmc6xfr0ylo"
+    }
+  },
+  "nicrosil": {
+    "title": "Nicrosil",
+    "icon": {
+      "type": "texture",
+      "data": {
+        "texture": "feruchemy:textures/icon/feruchemy/nicrosil.png"
+      }
+    },
+    "frame": {
+      "type": "texture",
+      "data": {
+        "unlocked": "feruchemy:textures/gui/frames/unlocked.png",
+        "available": "feruchemy:textures/gui/frames/available.png"
+      }
+    },
+    "rewards": [],
+    "metadata": {
+      "icon": "0lpzo88vlbx1bwot"
+    }
+  },
+  "pewter": {
+    "title": "Pewter",
+    "icon": {
+      "type": "texture",
+      "data": {
+        "texture": "feruchemy:textures/icon/feruchemy/pewter.png"
+      }
+    },
+    "frame": {
+      "type": "texture",
+      "data": {
+        "unlocked": "feruchemy:textures/gui/frames/unlocked.png",
+        "available": "feruchemy:textures/gui/frames/available.png"
+      }
+    },
+    "rewards": [],
+    "metadata": {
+      "icon": "3dwwz5l6onstkb8t"
+    }
+  },
+  "steel": {
+    "title": "Steel",
+    "icon": {
+      "type": "texture",
+      "data": {
+        "texture": "feruchemy:textures/icon/feruchemy/steel.png"
+      }
+    },
+    "frame": {
+      "type": "texture",
+      "data": {
+        "unlocked": "feruchemy:textures/gui/frames/unlocked.png",
+        "available": "feruchemy:textures/gui/frames/available.png"
+      }
+    },
+    "rewards": [],
+    "metadata": {
+      "icon": "gcm3m2bh2an8uld4"
+    }
+  },
+  "tin": {
+    "title": "Tin",
+    "icon": {
+      "type": "texture",
+      "data": {
+        "texture": "feruchemy:textures/icon/feruchemy/tin.png"
+      }
+    },
+    "frame": {
+      "type": "texture",
+      "data": {
+        "unlocked": "feruchemy:textures/gui/frames/unlocked.png",
+        "available": "feruchemy:textures/gui/frames/available.png"
+      }
+    },
+    "rewards": [],
+    "metadata": {
+      "icon": "uryd02d1tj7blpfp"
+    }
+  },
+  "zinc": {
+    "title": "Zinc",
+    "icon": {
+      "type": "texture",
+      "data": {
+        "texture": "feruchemy:textures/icon/feruchemy/zinc.png"
+      }
+    },
+    "frame": {
+      "type": "texture",
+      "data": {
+        "unlocked": "feruchemy:textures/gui/frames/unlocked.png",
+        "available": "feruchemy:textures/gui/frames/available.png"
+      }
+    },
+    "rewards": [],
+    "metadata": {
+      "icon": "8eftdv2b884qr3lv"
+    }
+  }
+}

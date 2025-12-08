@@ -1,0 +1,10 @@
+{
+  "title": "Feruchemy",
+  "icon": {
+    "type": "texture",
+    "data": {
+      "texture": "feruchemy:textures/icon/feruchemy.png"
+    }
+  },
+  "background": "textures/gui/advancements/backgrounds/adventure.png"
+}

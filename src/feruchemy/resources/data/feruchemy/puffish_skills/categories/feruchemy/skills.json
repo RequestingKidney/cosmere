@@ -1,0 +1,104 @@
+{
+  "binm3bb51q59sg5y": {
+    "definition": "iron",
+    "x": 32,
+    "y": -128,
+    "root": false
+  },
+  "kms0szn781rpdn87": {
+    "definition": "steel",
+    "x": -32,
+    "y": -128,
+    "root": false
+  },
+  "6c2z1am5b2rvazvs": {
+    "definition": "tin",
+    "x": -32,
+    "y": -64,
+    "root": false
+  },
+  "pre5oel2sk46x4wz": {
+    "definition": "pewter",
+    "x": 32,
+    "y": -64,
+    "root": false
+  },
+  "lbx4at2tg4jmwkm7": {
+    "definition": "chromium",
+    "x": -128,
+    "y": 32,
+    "root": false
+  },
+  "5nx86chy5kjexa73": {
+    "definition": "nicrosil",
+    "x": -128,
+    "y": -32,
+    "root": false
+  },
+  "x5ru9etg0yr15kph": {
+    "definition": "duralumin",
+    "x": -64,
+    "y": -32,
+    "root": false
+  },
+  "otww8w3v7srebe6p": {
+    "definition": "aluminum",
+    "x": -64,
+    "y": 32,
+    "root": false
+  },
+  "lktr9iwwch69i51f": {
+    "definition": "zinc",
+    "x": 64,
+    "y": -32,
+    "root": false
+  },
+  "h4gj389bfhu4jr04": {
+    "definition": "brass",
+    "x": 128,
+    "y": 32,
+    "root": false
+  },
+  "49dj2940qb5kw93b": {
+    "definition": "copper",
+    "x": 128,
+    "y": -32,
+    "root": false
+  },
+  "z5aley8nx4zr519c": {
+    "definition": "bronze",
+    "x": 64,
+    "y": 32,
+    "root": false
+  },
+  "pn67t8118tm4eaq6": {
+    "definition": "gold",
+    "x": -32,
+    "y": 64,
+    "root": false
+  },
+  "b0pgasxxmqhz0csr": {
+    "definition": "electrum",
+    "x": 32,
+    "y": 64,
+    "root": false
+  },
+  "iho46zqz60eqpufa": {
+    "definition": "cadmium",
+    "x": -32,
+    "y": 128,
+    "root": false
+  },
+  "7x8oelw6bnmpcfp3": {
+    "definition": "bendalloy",
+    "x": 32,
+    "y": 128,
+    "root": false
+  },
+  "pu802foh59ltxhl5": {
+    "definition": "feruchemy",
+    "x": 0,
+    "y": 0,
+    "root": true
+  }
+}
