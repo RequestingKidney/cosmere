@@ -1,5 +1,6 @@
 /*
  * File updated ~ 19 - 11 - 2023 ~ Leaf
+ * File updated ~ 2 - 5 - 2025 ~ SoaringEaqle
  */
 
 package leaf.cosmere.common.cap.entity;
@@ -10,10 +11,10 @@ import com.mojang.blaze3d.vertex.*;
 import leaf.cosmere.api.*;
 import leaf.cosmere.api.cosmereEffect.CosmereEffect;
 import leaf.cosmere.api.cosmereEffect.CosmereEffectInstance;
-import leaf.cosmere.api.investiture.IInvestiture;
 import leaf.cosmere.api.investiture.KineticInvestiture;
 import leaf.cosmere.api.manifestation.Manifestation;
 import leaf.cosmere.api.spiritweb.ISpiritweb;
+import leaf.cosmere.client.PowerSaveState;
 import leaf.cosmere.common.Cosmere;
 import leaf.cosmere.common.config.CosmereConfigs;
 import leaf.cosmere.common.investiture.Infusion;
@@ -89,6 +90,8 @@ public class SpiritwebCapability implements ISpiritweb
 
 	private final Map<Manifestations.ManifestationTypes, ISpiritwebSubmodule> spiritwebSubmodules;
 
+	private Map<Integer, Map<Manifestation, Integer>> powerSaveStorage;
+
 	public final Set<Infusion> infusions = new HashSet<>();
 	public final Set<KineticInvestiture> investitures = new HashSet<>();
 	private double maxBEU;
@@ -151,7 +154,7 @@ public class SpiritwebCapability implements ISpiritweb
 			spiritwebSubmodule.serialize(this);
 		}
 
-
+		nbt.put("PowerSaveStates", PowerSaveState.serialize());
 
 		return nbt;
 	}
@@ -206,6 +209,10 @@ public class SpiritwebCapability implements ISpiritweb
 		for (ISpiritwebSubmodule spiritwebSubmodule : spiritwebSubmodules.values())
 		{
 			spiritwebSubmodule.deserialize(this);
+		}
+		if(nbt.contains("PowerSaveStates"))
+		{
+			PowerSaveState.deserialize((CompoundTag) nbt.get("PowerSaveStates"));
 		}
 
 	}
@@ -345,7 +352,6 @@ public class SpiritwebCapability implements ISpiritweb
 		return this.activeEffects.entrySet();
 	}
 
-
 	//get the sum total strength of all matching effects in list of effects affecting target
 	@Override
 	public int totalStrengthOfEffect(CosmereEffect cosmereEffect)
@@ -463,7 +469,6 @@ public class SpiritwebCapability implements ISpiritweb
 	{
 		return livingEntity;
 	}
-
 
 
 	//Copy things from an old spiritweb into the new one.
@@ -918,6 +923,38 @@ public class SpiritwebCapability implements ISpiritweb
 			}
 		}
 
+		return list;
+	}
+
+	@Override
+	public HashMap<Manifestation, Integer> getManifestations()
+	{
+		return getManifestations(false, false);
+	}
+
+	@Override
+	public HashMap<Manifestation, Integer> getManifestations(boolean ignoreTemporaryPower, boolean ignoreInactivePower)
+	{
+		HashMap<Manifestation, Integer> list = new HashMap<>();
+		for(Manifestation manifestation: CosmereAPI.manifestationRegistry())
+		{
+			if (manifestation == ManifestationRegistry.NONE.getManifestation())
+			{
+				continue;
+			}
+			if (hasManifestation(manifestation, ignoreTemporaryPower))
+			{
+				if(!ignoreInactivePower)
+				{
+					list.put(manifestation,MANIFESTATIONS_MODE.get(manifestation));
+				}
+				else if((MANIFESTATIONS_MODE.get(manifestation)) != null && MANIFESTATIONS_MODE.get(manifestation) != 0)
+				{
+					list.put(manifestation,MANIFESTATIONS_MODE.get(manifestation));
+				}
+
+			}
+		}
 		return list;
 	}
 

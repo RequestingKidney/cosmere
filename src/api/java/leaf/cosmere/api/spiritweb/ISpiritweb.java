@@ -1,5 +1,6 @@
 /*
  * File updated ~ 29 - 10 - 2023 ~ Leaf
+ * File updated ~ 2 - 5 - 2025 ~ SoaringEaqle
  */
 
 package leaf.cosmere.api.spiritweb;
@@ -59,6 +60,10 @@ public interface ISpiritweb extends INBTSerializable<CompoundTag>
 	List<Manifestation> getAvailableManifestations();
 
 	List<Manifestation> getAvailableManifestations(boolean ignoreTemporaryPower);
+
+	HashMap<Manifestation, Integer> getManifestations();
+
+	HashMap<Manifestation, Integer> getManifestations(boolean ignoreTemporaryPower, boolean ignoreInactivePower);
 
 	String changeManifestation(int dir);
 

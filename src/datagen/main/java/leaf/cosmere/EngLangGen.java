@@ -6,12 +6,14 @@ package leaf.cosmere;
 
 import leaf.cosmere.api.EnumUtils;
 import leaf.cosmere.api.Metals;
+import leaf.cosmere.api.Roshar;
 import leaf.cosmere.api.helpers.RegistryHelper;
 import leaf.cosmere.api.providers.IAttributeProvider;
 import leaf.cosmere.api.providers.IEntityTypeProvider;
 import leaf.cosmere.api.providers.IItemProvider;
 import leaf.cosmere.api.text.StringHelper;
 import leaf.cosmere.common.Cosmere;
+import leaf.cosmere.common.items.GodMetalNuggetItem;
 import leaf.cosmere.common.registry.*;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
@@ -19,6 +21,7 @@ import net.minecraft.world.item.Item;
 import net.minecraftforge.common.data.LanguageProvider;
 
 import static leaf.cosmere.api.Constants.Strings.*;
+import static leaf.cosmere.common.registry.ItemsRegistry.METAL_NUGGETS;
 
 public class EngLangGen extends LanguageProvider
 {
@@ -34,6 +37,7 @@ public class EngLangGen extends LanguageProvider
 	protected void addTranslations()
 	{
 		addItemsAndBlocks();
+		addMetals();
 		addEntities();
 		addAdvancements();
 		addManifestations();
@@ -103,6 +107,15 @@ public class EngLangGen extends LanguageProvider
 		}
 	}
 
+	private void addMetals()
+	{
+		// Work through each metal
+		for (Metals.MetalType metalType : EnumUtils.METAL_TYPES)
+		{
+			add("metal.cosmere." + metalType.getName(), StringHelper.fixCapitalisation(metalType.getName()));
+		}
+	}
+
 	private void addEntities()
 	{
 		//Entities
@@ -121,6 +134,9 @@ public class EngLangGen extends LanguageProvider
 	private void addManifestations()
 	{
 		add(ManifestationRegistry.NONE.getTranslationKey(), "None");
+		// Hemalurgic manifestations
+		add("manifestation.cosmere.night_vision", "Night Vision");
+		add("manifestation.cosmere.xp_gain_rate", "XP Gain Rate");
 	}
 
 	private void addAttributes()
@@ -133,7 +149,8 @@ public class EngLangGen extends LanguageProvider
 			//manifestation section handles adding attributes lang gen for themselves
 			if (!descriptionId.startsWith("manifestation"))
 			{
-				String translation = descriptionId.split("\\.")[1];
+				String[] sections = descriptionId.replace('_', ' ').split("\\.");
+				String translation = sections[2];
 				add(descriptionId, StringHelper.fixCapitalisation(translation));
 			}
 		}
@@ -203,6 +220,7 @@ public class EngLangGen extends LanguageProvider
 	{
 		//KeyBindings
 		add(KEYS_CATEGORY, "Cosmere");
+		add(KEYS_ACTIVATE_CATEGORY, "Power Activators");
 		add(KEY_MANIFESTATION_MENU, "Powers Menu");
 		add(KEY_DEACTIVATE_ALL_POWERS, "Deactivate All Powers");
 		add(KEY_MANIFESTATION_NEXT, "Next Power");
@@ -210,6 +228,24 @@ public class EngLangGen extends LanguageProvider
 		add(KEY_MANIFESTATION_USE_ACTIVE, "Use Active Ability");
 		add(KEY_MANIFESTATION_MODE_INCREASE, "Mode Increase");
 		add(KEY_MANIFESTATION_MODE_DECREASE, "Mode Decrease");
+		add(KEY_ACTIVATE, "Activate Power Save State");
+		add(KEY_SAVE_ACTIVATOR, "Save New Power State");
+		String allo = "Activate Allomantic ";
+		String feru = "Activate Feruchemic ";
+		String surge = "Activate Surgebinding ";
+		for(Metals.MetalType metalType: EnumUtils.METAL_TYPES)
+		{
+			if(!metalType.hasFeruchemicalEffect())
+			{
+				continue;
+			}
+			add(KEY_ALLOMANCY + metalType.getName(), allo + StringHelper.fixCapitalisation(metalType.getName()));
+			add(KEY_FERUCHEMY + metalType.getName(), feru + StringHelper.fixCapitalisation(metalType.getName()));
+		}
+		for(Roshar.Surges i : EnumUtils.SURGES)
+		{
+			add(KEY_STORMLIGHT + i.getName(), surge + StringHelper.fixCapitalisation(i.getName()));
+		}
 	}
 
 	private void addStats()

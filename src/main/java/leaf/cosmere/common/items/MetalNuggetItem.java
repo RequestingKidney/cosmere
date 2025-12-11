@@ -4,6 +4,7 @@
 
 package leaf.cosmere.common.items;
 
+import leaf.cosmere.api.IGrantsBaseAttributes;
 import leaf.cosmere.api.Metals;
 import leaf.cosmere.common.registry.CosmereDamageTypesRegistry;
 import net.minecraft.world.InteractionHand;
@@ -44,6 +45,13 @@ public class MetalNuggetItem extends MetalItem
 	public InteractionResultHolder<ItemStack> use(Level world, Player player, @Nonnull InteractionHand hand)
 	{
 		ItemStack stack = player.getItemInHand(hand);
+
+		// Skip eating if it is a god metal, but not if it gives you powers
+		if (!(stack.getItem() instanceof IGrantsBaseAttributes) && this.getMetalType().isGodMetal())
+		{
+			return InteractionResultHolder.pass(stack);
+		}
+
 		if (player.canEat(true))
 		{
 			player.startUsingItem(hand);
