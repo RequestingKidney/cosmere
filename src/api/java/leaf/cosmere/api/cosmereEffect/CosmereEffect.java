@@ -8,6 +8,7 @@ import com.google.common.collect.Maps;
 import leaf.cosmere.api.providers.ICosmereEffectProvider;
 import leaf.cosmere.api.spiritweb.ISpiritweb;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 
@@ -35,7 +36,8 @@ public abstract class CosmereEffect implements ICosmereEffectProvider
 
 	protected CosmereEffect()
 	{
-	}
+        super();
+    }
 
 	public Map<Attribute, AttributeModifierInfo> getAttributeModifiers()
 	{

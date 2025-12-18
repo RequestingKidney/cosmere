@@ -5,12 +5,15 @@
 package leaf.cosmere.feruchemy.common.effects.tap;
 
 import leaf.cosmere.api.Metals;
+import leaf.cosmere.api.helpers.EffectsHelper;
 import leaf.cosmere.api.spiritweb.ISpiritweb;
 import leaf.cosmere.common.registry.AttributesRegistry;
 import leaf.cosmere.feruchemy.common.effects.FeruchemyEffectBase;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraftforge.common.ForgeMod;
 
 //health
 public class AtiumTapEffect extends FeruchemyEffectBase
@@ -26,10 +29,10 @@ public class AtiumTapEffect extends FeruchemyEffectBase
 				AttributeModifier.Operation.ADDITION);
 
 		//reduce related attributes appropriately
-		addAttributeModifier(
+		/*addAttributeModifier(
 				Attributes.MOVEMENT_SPEED,
 				0.1D,
-				AttributeModifier.Operation.MULTIPLY_TOTAL);
+				AttributeModifier.Operation.MULTIPLY_TOTAL);*/
 		addAttributeModifier(
 				Attributes.MAX_HEALTH,
 				0.1D,
@@ -46,6 +49,10 @@ public class AtiumTapEffect extends FeruchemyEffectBase
 				Attributes.ATTACK_KNOCKBACK,
 				0.1D,
 				AttributeModifier.Operation.MULTIPLY_TOTAL);
+        addAttributeModifier(
+                ForgeMod.ENTITY_REACH.get(),
+                0.1D,
+                AttributeModifier.Operation.MULTIPLY_TOTAL);
 	}
 
 
@@ -57,5 +64,7 @@ public class AtiumTapEffect extends FeruchemyEffectBase
 		{
 			living.setHealth(living.getMaxHealth());
 		}
+        living.addEffect(EffectsHelper.getNewEffect(MobEffects.JUMP, (int) (strength / 5f)));
+        living.addEffect(EffectsHelper.getNewEffect(MobEffects.MOVEMENT_SPEED, (int) (strength / 5f)));
 	}
 }

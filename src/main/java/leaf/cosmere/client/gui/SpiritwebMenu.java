@@ -49,7 +49,7 @@ public class SpiritwebMenu extends Screen implements ISyncSpiritweb
 	private Stopwatch lastChange = Stopwatch.createStarted();
 	public Manifestation selectedManifestation = null;
 	public SidedMenuButton doAction = null;
-	private Manifestations.ManifestationTypes selectedPowerType = Manifestations.ManifestationTypes.ALLOMANCY;
+	private Manifestations.ManifestationTypes selectedManifestationType = Manifestations.ManifestationTypes.ALLOMANCY;
 
 	protected ArrayList<RadialMenuButton> radialMenuButtons = new ArrayList<>();
 	protected ArrayList<SidedMenuButton> sidedMenuButtons = new ArrayList<>();
@@ -168,7 +168,7 @@ public class SpiritwebMenu extends Screen implements ISyncSpiritweb
 			{
 				if (sidedMenuButton.powerType != -1)
 				{
-					selectedPowerType = Manifestations.ManifestationTypes.valueOf(sidedMenuButton.powerType).get();
+					selectedManifestationType = Manifestations.ManifestationTypes.valueOf(sidedMenuButton.powerType).get();
 					SetupButtons();
 				}
 				else if (sidedMenuButton.action != null)
@@ -284,7 +284,7 @@ public class SpiritwebMenu extends Screen implements ISyncSpiritweb
 		sidedMenuButtons.clear();
 		metalQuadrants.clear();
 
-		if (selectedPowerType == Manifestations.ManifestationTypes.ALLOMANCY || selectedPowerType == Manifestations.ManifestationTypes.FERUCHEMY)
+		if (selectedManifestationType == Manifestations.ManifestationTypes.ALLOMANCY || selectedManifestationType == Manifestations.ManifestationTypes.FERUCHEMY)
 		{
 			// adding manually one-by-one was better than a for loop, as there would have to be a switch case anyway
 
@@ -379,26 +379,26 @@ public class SpiritwebMenu extends Screen implements ISyncSpiritweb
 		}
 		else
 		{
-			Set<Manifestations.ManifestationTypes> foundPowerTypes = new HashSet<>();
+			Set<Manifestations.ManifestationTypes> foundManifestationTypes = new HashSet<>();
 
 			for (Manifestation manifestation : availableManifestations)
 			{
-				if (manifestation.getManifestationType() == selectedPowerType)
+				if (manifestation.getManifestationType() == selectedManifestationType)
 				{
 					radialMenuButtons.add(new RadialMenuButton(manifestation));
 				}
-				foundPowerTypes.add(manifestation.getManifestationType());
+				foundManifestationTypes.add(manifestation.getManifestationType());
 			}
 
 			int index = 0;
-			int size = foundPowerTypes.size();
+			int size = foundManifestationTypes.size();
 
-			for (Manifestations.ManifestationTypes foundPowerType : foundPowerTypes)
+			for (Manifestations.ManifestationTypes foundManifestationType : foundManifestationTypes)
 			{
 				sidedMenuButtons.add(
 						new SidedMenuButton(
-								foundPowerType.getName(),
-								foundPowerType.getID(),
+								foundManifestationType.getName(),
+								foundManifestationType.getID(),
 								index++,
 								size,
 								Direction.UP)
@@ -492,7 +492,7 @@ public class SpiritwebMenu extends Screen implements ISyncSpiritweb
 		int leftSideX = 10;
 		final int[] y = {(int) middle_y / 2};
 
-		if (selectedPowerType == Manifestations.ManifestationTypes.SANDMASTERY)
+		if (selectedManifestationType == Manifestations.ManifestationTypes.SANDMASTERY)
 		{
 			m_infoText.clear();
 
@@ -522,9 +522,14 @@ public class SpiritwebMenu extends Screen implements ISyncSpiritweb
 		sidedMenuX += middle_x;
 		sidedMenuY += middle_y;
 
+        //todo translations here
+
 		String displayString = "+" + (int) selectedManifestation.getStrength(spiritweb, false) + " " + I18n.get(selectedManifestation.getTranslationKey());
 		guiGraphics.drawString(font, displayString, sidedMenuX, sidedMenuY, 0xffffffff);
-		//todo mode translation
+
+        int skillLevel = spiritweb.getManifestationSkillLevel(selectedManifestation, false);
+        if(skillLevel != 0) guiGraphics.drawString(font, "Skill Level: " + skillLevel, sidedMenuX, sidedMenuY+=10, 0xffffffff);
+
 		guiGraphics.drawString(font, "Mode: " + spiritweb.getMode(selectedManifestation), sidedMenuX, sidedMenuY + 10, 0xffffffff);
 
 	}
@@ -537,7 +542,7 @@ public class SpiritwebMenu extends Screen implements ISyncSpiritweb
 		List<Manifestation> maniList = spiritweb.getAvailableManifestations();
 		int maniListSize = maniList.size();
 		boolean manifestationNotNull = selectedManifestation != null;
-		boolean inMetalSubmenu = (selectedPowerType == Manifestations.ManifestationTypes.ALLOMANCY || selectedPowerType == Manifestations.ManifestationTypes.FERUCHEMY) && maniListSize > 16;
+		boolean inMetalSubmenu = (selectedManifestationType == Manifestations.ManifestationTypes.ALLOMANCY || selectedManifestationType == Manifestations.ManifestationTypes.FERUCHEMY) && maniListSize > 16;
 		boolean shouldShowAllomancy = maniListSize <= 16 && manifestationNotNull && selectedManifestation.getManifestationType() == Manifestations.ManifestationTypes.ALLOMANCY;
 		boolean shouldShowFeruchemy = maniListSize <= 16 && manifestationNotNull && selectedManifestation.getManifestationType() == Manifestations.ManifestationTypes.FERUCHEMY;
 		boolean manifestationIsSelected = shouldShowAllomancy || shouldShowFeruchemy;
@@ -550,8 +555,8 @@ public class SpiritwebMenu extends Screen implements ISyncSpiritweb
 		for (MetalQuadrant quad : metalQuadrants)
 		{
 			boolean foundNumber = false;
-			boolean selectedAllomancyType = selectedPowerType == Manifestations.ManifestationTypes.ALLOMANCY || shouldShowAllomancy;
-			boolean selectedFeruchemyType = selectedPowerType == Manifestations.ManifestationTypes.FERUCHEMY || shouldShowFeruchemy;
+			boolean selectedAllomancyType = selectedManifestationType == Manifestations.ManifestationTypes.ALLOMANCY || shouldShowAllomancy;
+			boolean selectedFeruchemyType = selectedManifestationType == Manifestations.ManifestationTypes.FERUCHEMY || shouldShowFeruchemy;
 
 			// if there are submenus, or if a manifestation is selected in the menu, proceed
 			if (inMetalSubmenu || manifestationIsSelected)
@@ -718,7 +723,7 @@ public class SpiritwebMenu extends Screen implements ISyncSpiritweb
 			}
 
 			stringBuilder.append(".png");
-			final ResourceLocation textureLocation = new ResourceLocation(mani.getRegistryName().getNamespace(), stringBuilder.toString());
+			final ResourceLocation textureLocation = new ResourceLocation(mani.getManifestationType().getName(), stringBuilder.toString());
 			RenderSystem.setShaderTexture(0, textureLocation);
 			guiGraphics.blit(textureLocation,
 					(int) (middleX + x1),
@@ -785,7 +790,7 @@ public class SpiritwebMenu extends Screen implements ISyncSpiritweb
 				button.highlighted = false;
 
 				// Highlight selected power type, even if not hovered
-				f = selectedPowerType.getID() == button.powerType
+				f = selectedManifestationType.getID() == button.powerType
 				    ? 1
 				    : 0;
 			}
@@ -803,8 +808,8 @@ public class SpiritwebMenu extends Screen implements ISyncSpiritweb
 	{
 		List<Manifestation> maniList = spiritweb.getAvailableManifestations();
 		boolean manifestationIsSelected = selectedManifestation != null && maniList.size() <= 16 && (selectedManifestation.getManifestationType() == Manifestations.ManifestationTypes.ALLOMANCY || selectedManifestation.getManifestationType() == Manifestations.ManifestationTypes.FERUCHEMY);
-		boolean allomancySubmenuOpen = selectedPowerType == Manifestations.ManifestationTypes.ALLOMANCY && maniList.size() > 16;
-		boolean feruchemySubmenuOpen = selectedPowerType == Manifestations.ManifestationTypes.FERUCHEMY && maniList.size() > 16;
+		boolean allomancySubmenuOpen = selectedManifestationType == Manifestations.ManifestationTypes.ALLOMANCY && maniList.size() > 16;
+		boolean feruchemySubmenuOpen = selectedManifestationType == Manifestations.ManifestationTypes.FERUCHEMY && maniList.size() > 16;
 		boolean hasSubmenu = allomancySubmenuOpen || feruchemySubmenuOpen;
 		boolean allomancySelected = !hasSubmenu && manifestationIsSelected && selectedManifestation.getManifestationType() == Manifestations.ManifestationTypes.ALLOMANCY;
 		boolean feruchemySelected = !hasSubmenu && manifestationIsSelected && selectedManifestation.getManifestationType() == Manifestations.ManifestationTypes.FERUCHEMY;

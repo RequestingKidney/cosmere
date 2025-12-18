@@ -34,5 +34,19 @@ public class FeruchemyAttributes
 											16
 									)));
 
+    public static final Map<Metals.MetalType, AttributeRegistryObject<Attribute>> FERUCHEMY_SKILL_ATTRIBUTES =
+            Arrays.stream(EnumUtils.METAL_TYPES)
+                    .filter(metalType -> metalType != Metals.MetalType.ATIUM && metalType.hasAssociatedManifestation())
+                    .collect(Collectors.toMap(
+                            Function.identity(),
+                            type ->
+                                    ATTRIBUTES.register(
+                                            type.getName() + ".skill",
+                                            Feruchemy.MODID,
+                                            0,
+                                            0,
+                                            256
+                                    )));
+
 
 }

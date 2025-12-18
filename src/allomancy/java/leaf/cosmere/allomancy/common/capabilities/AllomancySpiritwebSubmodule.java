@@ -14,6 +14,7 @@ import leaf.cosmere.allomancy.common.manifestation.*;
 import leaf.cosmere.allomancy.common.registries.AllomancyAttributes;
 import leaf.cosmere.allomancy.common.registries.AllomancyItems;
 import leaf.cosmere.allomancy.common.registries.AllomancyManifestations;
+import leaf.cosmere.api.CosmereAPI;
 import leaf.cosmere.api.EnumUtils;
 import leaf.cosmere.api.ISpiritwebSubmodule;
 import leaf.cosmere.api.Manifestations;
@@ -22,10 +23,13 @@ import leaf.cosmere.api.helpers.CompoundNBTHelper;
 import leaf.cosmere.api.helpers.DrawHelper;
 import leaf.cosmere.api.helpers.PlayerHelper;
 import leaf.cosmere.api.manifestation.Manifestation;
+import leaf.cosmere.api.math.MathHelper;
 import leaf.cosmere.api.spiritweb.ISpiritweb;
+import leaf.cosmere.common.config.CosmereConfigs;
 import leaf.cosmere.common.registration.impl.AttributeRegistryObject;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -41,6 +45,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static leaf.cosmere.allomancy.common.registries.AllomancyManifestations.ALLOMANCY_POWERS;
 
 public class AllomancySpiritwebSubmodule implements ISpiritwebSubmodule
 {
@@ -326,7 +332,7 @@ public class AllomancySpiritwebSubmodule implements ISpiritwebSubmodule
 	}
 
 	@Override
-	public void GiveStartingItem(Player player)
+	public void giveStartingItem(Player player)
 	{
 		ItemStack itemStack = new ItemStack(AllomancyItems.METAL_VIAL.get());
 		for (int i = 0; i < 16; i++)
@@ -337,7 +343,7 @@ public class AllomancySpiritwebSubmodule implements ISpiritwebSubmodule
 	}
 
 	@Override
-	public void GiveStartingItem(Player player, Manifestation manifestation)
+	public void giveStartingItem(Player player, Manifestation manifestation)
 	{
 		if (manifestation instanceof AllomancyManifestation allomancyManifestation)
 		{
@@ -386,4 +392,31 @@ public class AllomancySpiritwebSubmodule implements ISpiritwebSubmodule
 	{
 		this.pewterDelayedDamage = pewterDelayedDamage;
 	}
+
+    @Override
+    public void giveEntityStartingManifestations(LivingEntity entity, ISpiritweb spiritweb)
+    {
+        final Integer chanceOfFullPowers = CosmereConfigs.SERVER_CONFIG.FULLBORN_POWERS_CHANCE.get();
+
+        boolean isMistborn = MathHelper.chance(chanceOfFullPowers);
+
+        if(isMistborn)
+        {
+            CosmereAPI.logger.info("Entity {} is a Mistborn!", spiritweb.getLiving().getName().getString());
+
+            ALLOMANCY_POWERS.forEach((metalType, allomancyPower) -> {
+                allomancyPower.getManifestation().grantManifestation(spiritweb, 9);
+            });
+            if(entity instanceof Player player) giveStartingItem(player);
+        }
+        else
+        {
+            int allomancyPowerID = MathHelper.randomInt(0, 15);
+            final Metals.MetalType metalType = Metals.MetalType.valueOf(allomancyPowerID).get();
+
+            CosmereAPI.logger.info("Entity {} is a {} Misting!", spiritweb.getLiving().getName().getString(), metalType.getName());
+            ALLOMANCY_POWERS.get(metalType).get().grantManifestation(spiritweb, 9);
+            if(entity instanceof Player player) giveStartingItem(player, ALLOMANCY_POWERS.get(metalType).get());
+        }
+    }
 }

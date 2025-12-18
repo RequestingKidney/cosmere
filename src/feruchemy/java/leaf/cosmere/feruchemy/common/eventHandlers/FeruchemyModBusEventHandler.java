@@ -19,8 +19,6 @@ import net.minecraftforge.fml.common.Mod;
 @Mod.EventBusSubscriber(modid = Feruchemy.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class FeruchemyModBusEventHandler
 {
-
-
 	@SubscribeEvent(priority = EventPriority.HIGH)
 	public static void onEntityAttributeModificationEvent(EntityAttributeModificationEvent event)
 	{
@@ -32,6 +30,10 @@ public class FeruchemyModBusEventHandler
 				{
 					event.add(entityType, FeruchemyAttributes.FERUCHEMY_ATTRIBUTES.get(metalType).get());
 				}
+                if (metalType.hasAssociatedManifestation() && FeruchemyAttributes.FERUCHEMY_SKILL_ATTRIBUTES.containsKey(metalType))
+                {
+                    event.add(entityType, FeruchemyAttributes.FERUCHEMY_SKILL_ATTRIBUTES.get(metalType).get());
+                }
 			}
 
 		}

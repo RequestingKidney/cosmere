@@ -151,7 +151,7 @@ public class ChooseMetalbornPowersCommand extends ModCommand
 						source.sendSuccess(() -> Component.literal("Successfully added allomantic " + queueItem.allomanticPower.getName() + " to " + player.getName().getString()), false);   // todo localisation string
 
 						// give player metal vial according to what they chose
-						spiritwebCap.getSubmodule(Manifestations.ManifestationTypes.ALLOMANCY).GiveStartingItem(player, queueItem.allomanticPower);
+						spiritwebCap.getSubmodule(Manifestations.ManifestationTypes.ALLOMANCY).giveStartingItem(player, queueItem.allomanticPower);
 					}
 					if (!queueItem.feruchemicalPower.getManifestationType().equals(Manifestations.ManifestationTypes.NONE))
 					{
@@ -159,11 +159,9 @@ public class ChooseMetalbornPowersCommand extends ModCommand
 						source.sendSuccess(() -> Component.literal("Successfully added feruchemical " + queueItem.feruchemicalPower.getName() + " to " + player.getName().getString()), false);   // todo localisation string
 
 						// give player metal vial according to what they chose
-						spiritwebCap.getSubmodule(Manifestations.ManifestationTypes.FERUCHEMY).GiveStartingItem(player, queueItem.feruchemicalPower);
+						spiritwebCap.getSubmodule(Manifestations.ManifestationTypes.FERUCHEMY).giveStartingItem(player, queueItem.feruchemicalPower);
 					}
-
-					// adds non-metalborn powers
-					EntityEventHandler.addOtherPowers(spiritwebCap);
+                    spiritwebCap.getSubmodule(Manifestations.ManifestationTypes.SANDMASTERY).giveStartingItem(player, queueItem.feruchemicalPower);
 				}
 				else
 				{

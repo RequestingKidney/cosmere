@@ -11,6 +11,7 @@ import leaf.cosmere.feruchemy.common.effects.FeruchemyEffectBase;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraftforge.common.ForgeMod;
 
 //health
 public class AtiumStoreEffect extends FeruchemyEffectBase
@@ -46,6 +47,14 @@ public class AtiumStoreEffect extends FeruchemyEffectBase
 				Attributes.ATTACK_KNOCKBACK,
 				-0.1D,
 				AttributeModifier.Operation.MULTIPLY_TOTAL);
+        addAttributeModifier(
+                ForgeMod.ENTITY_REACH.get(),
+                -0.1D,
+                AttributeModifier.Operation.MULTIPLY_TOTAL);
+        addAttributeModifier(
+                ForgeMod.ENTITY_GRAVITY.get(),
+                0.1D,
+                AttributeModifier.Operation.MULTIPLY_TOTAL);
 	}
 
 

@@ -10,9 +10,12 @@ import leaf.cosmere.api.providers.IManifestationProvider;
 import leaf.cosmere.api.spiritweb.ISpiritweb;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.ForgeRegistry;
 import net.minecraftforge.registries.IForgeRegistry;
 
 public class Manifestation implements IManifestationProvider
@@ -100,15 +103,78 @@ public class Manifestation implements IManifestationProvider
 		return data.canTickManifestation(this);
 	}
 
-	public double getStrength(ISpiritweb cap, boolean getBaseStrength)
+    public void grantManifestation(ISpiritweb spiritweb, int strength)
+    {
+        LivingEntity entity = spiritweb.getLiving();
+        AttributeInstance attributeInstance = entity.getAttribute(getAttribute());
+        if (attributeInstance != null) {
+            attributeInstance.setBaseValue(strength);
+        }
+    }
+
+    public void removeManifestation(ISpiritweb spiritweb)
+    {
+        LivingEntity entity = spiritweb.getLiving();
+        AttributeInstance attributeInstance = entity.getAttribute(getAttribute());
+
+        if (attributeInstance != null) {
+            attributeInstance.setBaseValue(0);
+        }
+    }
+
+	public double getStrength(ISpiritweb spiritweb, boolean ignoreTemporaryPowers)
 	{
-		AttributeInstance attribute = cap.getLiving().getAttribute(getAttribute());
-		if (attribute != null)
-		{
-			return getBaseStrength ? attribute.getBaseValue() : attribute.getValue();
-		}
-		return 0;
+        LivingEntity entity = spiritweb.getLiving();
+        AttributeInstance attributeInstance = entity.getAttribute(getAttribute());
+        if (attributeInstance != null) {
+            return ignoreTemporaryPowers ? attributeInstance.getBaseValue() : attributeInstance.getValue();
+        } else {
+            return 0;
+        }
 	}
+
+    public void raiseSkill(ISpiritweb spiritweb, int amount)
+    {
+        LivingEntity entity = spiritweb.getLiving();
+        AttributeInstance attributeInstance = entity.getAttribute(getSkillAttribute());
+        if (attributeInstance != null) {
+            if ((attributeInstance.getAttribute() instanceof RangedAttribute rangedAttribute)) {
+                int currentLevel = (int) attributeInstance.getBaseValue();
+                int newLevel = currentLevel + amount;
+                if (newLevel > rangedAttribute.getMaxValue()) {
+                    newLevel = (int) rangedAttribute.getMaxValue();
+                }
+                attributeInstance.setBaseValue(newLevel);
+            }
+        }
+    }
+
+    public void lowerSkill(ISpiritweb spiritweb, int amount)
+    {
+        LivingEntity entity = spiritweb.getLiving();
+        AttributeInstance attributeInstance = entity.getAttribute(getSkillAttribute());
+        if (attributeInstance != null) {
+            if ((attributeInstance.getAttribute() instanceof RangedAttribute rangedAttribute)) {
+                int currentLevel = (int) attributeInstance.getBaseValue();
+                int newLevel = currentLevel - amount;
+                if (newLevel < rangedAttribute.getMinValue()) {
+                    newLevel = (int) rangedAttribute.getMinValue();
+                }
+                attributeInstance.setBaseValue(newLevel);
+            }
+        }
+    }
+
+    public int getSkillLevel(ISpiritweb spiritweb, boolean ignoreTemporaryPowers)
+    {
+        LivingEntity entity = spiritweb.getLiving();
+        AttributeInstance attributeInstance = entity.getAttribute(getSkillAttribute());
+        if (attributeInstance != null) {
+            return (int) (ignoreTemporaryPowers ? attributeInstance.getBaseValue() : attributeInstance.getValue());
+        } else {
+            return 0;
+        }
+    }
 
 	@Override
 	public ResourceLocation getRegistryName()
@@ -145,5 +211,13 @@ public class Manifestation implements IManifestationProvider
 	{
 		return ForgeRegistries.ATTRIBUTES.getValue(getRegistryName());
 	}
+
+    public Attribute getSkillAttribute()
+    {
+        ResourceLocation regName = getRegistryName();
+        ResourceLocation skillAttributeRL = new ResourceLocation(regName + ".skill");
+        IForgeRegistry<Attribute> registry = ForgeRegistries.ATTRIBUTES;
+        return registry.getValue(skillAttributeRL);
+    }
 
 }

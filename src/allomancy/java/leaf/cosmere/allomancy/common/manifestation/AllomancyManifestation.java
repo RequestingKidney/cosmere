@@ -164,6 +164,8 @@ public class AllomancyManifestation extends Manifestation implements IHasMetalTy
 		LivingEntity livingEntity = data.getLiving();
 		boolean isActiveTick = isActiveTick(data);
 		allo.adjustIngestedMetal(metalType, -cost, isActiveTick);
+        if(isActiveTick) raiseSkill(data, 1);
+
 
 		if (isActiveTick && livingEntity instanceof ServerPlayer serverPlayer)
 		{
