@@ -27,6 +27,14 @@ public interface ISpiritweb extends INBTSerializable<CompoundTag>
 
 	LivingEntity getLiving();
 
+    Map<UUID, Connection> getConnections();
+
+    void grantConnection(UUID id, Connection connection);
+
+    void removeConnection(UUID id);
+
+    void modifyConnection(UUID id, int amount);
+
 	boolean hasManifestation(Manifestation manifestation);
 
 	boolean hasManifestation(Manifestation manifestation, boolean ignoreTemporaryPower);

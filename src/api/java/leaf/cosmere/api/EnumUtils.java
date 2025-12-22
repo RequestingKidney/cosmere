@@ -11,6 +11,7 @@ public class EnumUtils
 {
 	//cosmere
 	public static final Metals.MetalType[] METAL_TYPES = Metals.MetalType.values();
+    public static final Shards.Shard[] SHARDS = Shards.Shard.values();
 
 	//roshar
 	public static final Roshar.RadiantOrder[] RADIANT_ORDERS = Roshar.RadiantOrder.values();

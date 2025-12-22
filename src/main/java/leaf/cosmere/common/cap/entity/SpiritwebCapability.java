@@ -8,6 +8,7 @@ package leaf.cosmere.common.cap.entity;
 import com.google.common.collect.Maps;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
+import leaf.cosmere.api.Connections;
 import leaf.cosmere.api.CosmereAPI;
 import leaf.cosmere.api.IHasMetalType;
 import leaf.cosmere.api.ISpiritwebSubmodule;
@@ -15,6 +16,7 @@ import leaf.cosmere.api.Manifestations;
 import leaf.cosmere.api.cosmereEffect.CosmereEffect;
 import leaf.cosmere.api.cosmereEffect.CosmereEffectInstance;
 import leaf.cosmere.api.manifestation.Manifestation;
+import leaf.cosmere.api.spiritweb.Connection;
 import leaf.cosmere.api.spiritweb.ISpiritweb;
 import leaf.cosmere.client.PowerSaveState;
 import leaf.cosmere.common.Cosmere;
@@ -93,6 +95,8 @@ public class SpiritwebCapability implements ISpiritweb
 
 	private Map<Integer, Map<Manifestation, Integer>> powerSaveStorage;
 
+    private Map<UUID, Connection> connections = new HashMap<>();
+
 
 	public SpiritwebCapability(LivingEntity ent)
 	{
@@ -150,6 +154,13 @@ public class SpiritwebCapability implements ISpiritweb
 		}
 
 		nbt.put("PowerSaveStates", PowerSaveState.serialize());
+
+        CompoundTag connectionNbt = new CompoundTag();
+        connections.forEach((id, connection) -> {
+            connectionNbt.putIntArray(id.toString(),
+                    new int[] {connection.getConnectionType().getID(), connection.getStrength()});
+        });
+        nbt.put("Connections", connectionNbt);
 
 		return nbt;
 	}
@@ -209,6 +220,18 @@ public class SpiritwebCapability implements ISpiritweb
 		{
 			PowerSaveState.deserialize((CompoundTag) nbt.get("PowerSaveStates"));
 		}
+
+        if(nbt.contains("Connections"))
+        {
+            CompoundTag connectionNbt = nbt.getCompound("Connections");
+            for(String key : connectionNbt.getAllKeys())
+            {
+                int[] data = connectionNbt.getIntArray(key);
+                Connections.ConnectionType.valueOf(data[0]).ifPresent(connectionType -> {
+                    connections.put(UUID.fromString(key), new Connection(connectionType, data[1]));
+                });
+            }
+        }
 	}
 
 	@Override
@@ -432,8 +455,43 @@ public class SpiritwebCapability implements ISpiritweb
 		return livingEntity;
 	}
 
+    @Override
+    public Map<UUID, Connection> getConnections()
+    {
+        return connections;
+    }
 
-	//Copy things from an old spiritweb into the new one.
+    @Override
+    public void grantConnection(UUID id, Connection connection)
+    {
+        if(connections.containsKey(id))
+        {
+            int newStrength = connections.get(id).getStrength() + connection.getStrength();
+            connections.get(id).setStrength(newStrength);
+        }
+        else
+        {
+            connections.put(id, connection);
+        }
+    }
+
+    @Override
+    public void removeConnection(UUID id)
+    {
+        connections.remove(id);
+    }
+
+    @Override
+    public void modifyConnection(UUID id, int amount)
+    {
+        if(connections.containsKey(id))
+        {
+            int newStrength = connections.get(id).getStrength() + amount;
+            connections.get(id).setStrength(newStrength);
+        }
+    }
+
+    //Copy things from an old spiritweb into the new one.
 	//Eg a player has died and we need to make sure they get their stormlight and breaths back.
 	@Override
 	public void onPlayerClone(PlayerEvent.Clone event, ISpiritweb oldSpiritWeb)
