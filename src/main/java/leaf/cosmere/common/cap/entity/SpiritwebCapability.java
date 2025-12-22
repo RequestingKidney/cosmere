@@ -848,38 +848,35 @@ public class SpiritwebCapability implements ISpiritweb
 	@Override
 	public void giveManifestation(Manifestation manifestation, int baseValue)
 	{
-		final Attribute attribute = manifestation.getAttribute();
-		if (attribute == null)
-		{
-			return;
-		}
-		AttributeInstance manifestationAttribute = livingEntity.getAttribute(attribute);
-
-		if (manifestationAttribute != null)
-		{
-			manifestationAttribute.setBaseValue(baseValue);
-		}
-
+		manifestation.grantManifestation(this, baseValue);
 		hasBeenInitialized = true;
 	}
 
 	@Override
 	public void removeManifestation(Manifestation manifestation)
 	{
-		final Attribute attribute = manifestation.getAttribute();
-		if (attribute == null)
-		{
-			return;
-		}
-
-		AttributeInstance manifestationAttribute = livingEntity.getAttribute(attribute);
-		if (manifestationAttribute != null)
-		{
-			manifestationAttribute.setBaseValue(0);
-		}
+		manifestation.removeManifestation(this);
 	}
 
-	@Override
+    @Override
+    public void raiseManifestationSkillLevel(Manifestation manifestation, int amount)
+    {
+        manifestation.raiseSkill(this,amount);
+    }
+
+    @Override
+    public void lowerManifestationSkillLevel(Manifestation manifestation, int amount)
+    {
+        manifestation.lowerSkill(this, amount);
+    }
+
+    @Override
+    public int getManifestationSkillLevel(Manifestation manifestation, boolean ignoreTemporaryPower)
+    {
+        return manifestation.getSkillLevel(this, ignoreTemporaryPower);
+    }
+
+    @Override
 	public boolean canTickManifestation(Manifestation manifestation)
 	{
 		if (!hasManifestation(manifestation))

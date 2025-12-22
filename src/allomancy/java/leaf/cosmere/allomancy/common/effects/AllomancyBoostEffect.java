@@ -10,6 +10,7 @@ import leaf.cosmere.api.EnumUtils;
 import leaf.cosmere.api.Manifestations;
 import leaf.cosmere.api.Metals;
 import leaf.cosmere.api.cosmereEffect.CosmereEffect;
+import leaf.cosmere.api.manifestation.Manifestation;
 import leaf.cosmere.api.spiritweb.ISpiritweb;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 
@@ -61,7 +62,8 @@ public class AllomancyBoostEffect extends CosmereEffect
 			if (ingestedMetalAmount > 0)
 			{
 				//drain metals that are actively being burned
-				if (data.canTickManifestation(Manifestations.ManifestationTypes.ALLOMANCY.getManifestation(metalType.getID())))
+                Manifestation manifestation = Manifestations.ManifestationTypes.ALLOMANCY.getManifestation(metalType.getID());
+				if (data.canTickManifestation(manifestation))
 				{
 					final int amountToAdjust =
 							ingestedMetalAmount > 30 ? (ingestedMetalAmount / 2) : ingestedMetalAmount;
@@ -69,7 +71,7 @@ public class AllomancyBoostEffect extends CosmereEffect
 							metalType,
 							-amountToAdjust, //take amount away
 							true);
-
+                    manifestation.raiseSkill(data, 1);
 				}
 			}
 		}

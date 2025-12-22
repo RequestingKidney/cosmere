@@ -4,11 +4,8 @@
 
 package leaf.cosmere.common.eventHandlers;
 
-import leaf.cosmere.api.CosmereAPI;
 import leaf.cosmere.api.Manifestations;
-import leaf.cosmere.api.Metals;
 import leaf.cosmere.api.helpers.EntityHelper;
-import leaf.cosmere.api.manifestation.Manifestation;
 import leaf.cosmere.api.math.MathHelper;
 import leaf.cosmere.api.spiritweb.ISpiritweb;
 import leaf.cosmere.common.Cosmere;
@@ -38,7 +35,6 @@ import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.living.LootingLevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ForgeRegistries;
 
@@ -145,181 +141,20 @@ public class EntityEventHandler
 				|| entity instanceof AbstractPiglin;
 	}
 
-	//todo eventually we want to replace this.
-	// Maybe an origins style menu that lets you choose a randomised power by world type
-	// Each mod could report the available powers, and what other mods they're allowed to spawn powers with (allomancy/feruchemy)
-	public static void giveEntityStartingManifestation(LivingEntity entity, SpiritwebCapability spiritwebCapability)
-	{
-		boolean isPlayerEntity = entity instanceof Player;
-
-		if (isPlayerEntity)
-		{
-			if (!MathHelper.chance(CosmereConfigs.SERVER_CONFIG.PLAYER_METALBORN_CHANCE.get()))
-			{
-				// if player isn't metalborn, no need to continue
-				// a bit messy to do this but oh well, we want to change it anyway      // tech debt? what's that?
-				addOtherPowers(spiritwebCapability);
-				return;
-			}
-		}
-
-		final Integer chanceOfFullPowers = CosmereConfigs.SERVER_CONFIG.FULLBORN_POWERS_CHANCE.get();
-		final Integer chanceOfTwinborn = isPlayerEntity ? CosmereConfigs.SERVER_CONFIG.TWINBORN_POWERS_CHANCE_PLAYER.get() : CosmereConfigs.SERVER_CONFIG.TWINBORN_POWERS_CHANCE_MOB.get();
-		//low chance of having full powers of one type
-		//0-15 inclusive is normal powers.
-		boolean isFullPowersFromOneType = MathHelper.chance(chanceOfFullPowers);
-
-		//small chance of being twin born, but only if not having full powers above
-		//except for players who are guaranteed having at least two powers.
-		boolean isTwinborn = MathHelper.chance(chanceOfTwinborn);
-
-		//randomise the given powers from allomancy and feruchemy
-		int allomancyPowerID = MathHelper.randomInt(0, 15);
-		int feruchemyPowerID = MathHelper.randomInt(0, 15);
-
-		final Metals.MetalType allomancyMetal = Metals.MetalType.valueOf(allomancyPowerID).get();
-		final Metals.MetalType feruchemyMetal = Metals.MetalType.valueOf(feruchemyPowerID).get();
-
-		final boolean allomancyLoaded = ModList.get().isLoaded("allomancy");
-		final boolean feruchemyLoaded = ModList.get().isLoaded("feruchemy");
-
-		//if not twinborn, pick one power
-		boolean isAllomancy = MathHelper.randomBool();
-
-		if (isFullPowersFromOneType)
-		{
-			//ooh full powers
-
-			final Manifestations.ManifestationTypes manifestationType;
-			if (allomancyLoaded && feruchemyLoaded)
-			{
-				manifestationType = isAllomancy
-									? Manifestations.ManifestationTypes.ALLOMANCY
-									: Manifestations.ManifestationTypes.FERUCHEMY;
-			}
-			else if (allomancyLoaded)
-			{
-				manifestationType = Manifestations.ManifestationTypes.ALLOMANCY;
-			}
-			else if (feruchemyLoaded)
-			{
-				manifestationType = Manifestations.ManifestationTypes.FERUCHEMY;
-			}
-			else
-			{
-				// ...why are we here?
-				return;
-			}
-
-
-			CosmereAPI.logger.info("Entity {} has full powers! {}", spiritwebCapability.getLiving().getName().getString(), manifestationType);
-
-			for (Manifestation manifestation : CosmereAPI.manifestationRegistry())
-			{
-				if (manifestation.getManifestationType() == manifestationType)
-				{
-					spiritwebCapability.giveManifestation(manifestation, 9);
-
-				}
-			}
-			if (spiritwebCapability.getLiving() instanceof Player player)
-			{
-				spiritwebCapability.getSubmodule(manifestationType).GiveStartingItem(player);
-			}
-		}
-		else
-		{
-			final Manifestation allomancyPower = Manifestations.ManifestationTypes.ALLOMANCY.getManifestation(allomancyMetal.getID());
-			final Manifestation feruchemyPower = Manifestations.ManifestationTypes.FERUCHEMY.getManifestation(feruchemyMetal.getID());
-			if (isTwinborn)
-			{
-				if (allomancyLoaded)
-				{
-					spiritwebCapability.giveManifestation(allomancyPower, 9);
-					if (spiritwebCapability.getLiving() instanceof Player player)
-					{
-						spiritwebCapability.getSubmodule(Manifestations.ManifestationTypes.ALLOMANCY).GiveStartingItem(player, allomancyPower);
-					}
-					CosmereAPI.logger.info(
-							"Entity {} has been granted allomantic {}!",
-							spiritwebCapability.getLiving().getName().getString(),
-							allomancyMetal);
-				}
-				if (feruchemyLoaded)
-				{
-					spiritwebCapability.giveManifestation(feruchemyPower, 9);
-
-					if (spiritwebCapability.getLiving() instanceof Player player)
-					{
-						spiritwebCapability.getSubmodule(Manifestations.ManifestationTypes.FERUCHEMY).GiveStartingItem(player, feruchemyPower);
-					}
-					CosmereAPI.logger.info(
-						"Entity {} has been granted feruchemical {}!",
-						spiritwebCapability.getLiving().getName().getString(),
-						feruchemyMetal);
-				}
-			}
-			else
-			{
-				Manifestation manifestation;
-				isAllomancy = isPlayerEntity ? MathHelper.randomInt(0, 99) < CosmereConfigs.SERVER_CONFIG.PLAYER_MISTING_TO_FERRING_DISTRIBUTION.get() : MathHelper.randomBool();
-				if (allomancyLoaded && feruchemyLoaded)
-				{
-					manifestation =
-						isAllomancy
-						? allomancyPower
-						: feruchemyPower;
-				}
-				else if (allomancyLoaded)
-				{
-					manifestation = allomancyPower;
-				}
-				else if (feruchemyLoaded)
-				{
-					manifestation = feruchemyPower;
-				}
-				else
-				{
-					// again, why are we here?
-					return;
-				}
-
-				spiritwebCapability.giveManifestation(manifestation, 9);
-				if (spiritwebCapability.getLiving() instanceof Player player)
-				{
-					spiritwebCapability.getSubmodule(isAllomancy ? Manifestations.ManifestationTypes.ALLOMANCY : Manifestations.ManifestationTypes.FERUCHEMY).GiveStartingItem(player, manifestation);
-				}
-				CosmereAPI.logger.info("Entity {} has been granted {}, with metal {}!",
-						spiritwebCapability.getLiving().getName().getString(),
-						isAllomancy
-						? Manifestations.ManifestationTypes.ALLOMANCY.getName()
-						: Manifestations.ManifestationTypes.FERUCHEMY.getName(),
-						isAllomancy
-						? allomancyMetal
-						: feruchemyMetal);
-
-				//at this time, players are twin-born minimum, so no need to try give powers here
-			}
-		}
-
-		// TODO We wanna change how powers are granted, as cosmere library mod shouldn't be in charge of this
-		addOtherPowers(spiritwebCapability);
-	}
-
-	public static void addOtherPowers(SpiritwebCapability spiritwebCapability)
-	{
-		for (Manifestation manifestation : CosmereAPI.manifestationRegistry())
-		{
-			if (manifestation.getManifestationType() == Manifestations.ManifestationTypes.SANDMASTERY)
-			{
-				final int ribbonCount = MathHelper.randomInt(1, 24);
-				spiritwebCapability.giveManifestation(manifestation, ribbonCount);
-				//Break here because there is only one attribute for ribbons.
-				CosmereAPI.logger.info("Setting entity {} ribbons to {}", spiritwebCapability.getLiving().getName().getString(), ribbonCount);
-				break;
-			}
-		}
-	}
+    public static void giveEntityStartingManifestation(LivingEntity entity, SpiritwebCapability spiritwebCapability)
+    {
+        // THIS IS THE ONLY WAY WE SHOULD BE GIVING STARTING POWERS
+        // EVERYTHING ELSE BELOW SHOULD BE HANDLED BY SUBMODULES
+        spiritwebCapability.getSubmodules().forEach(((manifestationType, iSpiritwebSubmodule) ->
+        {
+            if(!MathHelper.chance(CosmereConfigs.SERVER_CONFIG.PLAYER_METALBORN_CHANCE.get()) &&
+                    (manifestationType == Manifestations.ManifestationTypes.ALLOMANCY || manifestationType == Manifestations.ManifestationTypes.FERUCHEMY))
+            {
+                return;
+            }
+            iSpiritwebSubmodule.giveEntityStartingManifestations(entity, spiritwebCapability);
+        }));
+    }
 
 
 	@SubscribeEvent

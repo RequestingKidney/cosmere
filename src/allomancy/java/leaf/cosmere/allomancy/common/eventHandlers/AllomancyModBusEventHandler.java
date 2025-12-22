@@ -30,6 +30,10 @@ public class AllomancyModBusEventHandler
 				{
 					event.add(entityType, AllomancyAttributes.ALLOMANCY_ATTRIBUTES.get(metalType).get());
 				}
+                if (metalType.hasAssociatedManifestation() && AllomancyAttributes.ALLOMANCY_SKILL_ATTRIBUTES.containsKey(metalType))
+                {
+                    event.add(entityType, AllomancyAttributes.ALLOMANCY_SKILL_ATTRIBUTES.get(metalType).get());
+                }
 			}
 		}
 

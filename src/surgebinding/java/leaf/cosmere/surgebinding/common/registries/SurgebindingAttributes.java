@@ -5,6 +5,7 @@
 package leaf.cosmere.surgebinding.common.registries;
 
 import leaf.cosmere.api.EnumUtils;
+import leaf.cosmere.api.Metals;
 import leaf.cosmere.api.Roshar;
 import leaf.cosmere.common.registration.impl.AttributeDeferredRegister;
 import leaf.cosmere.common.registration.impl.AttributeRegistryObject;
@@ -32,6 +33,19 @@ public class SurgebindingAttributes
 											0,
 											10
 									)));
+
+    public static final Map<Roshar.Surges, AttributeRegistryObject<Attribute>> SURGEBINDING_SKILL_ATTRIBUTES =
+            Arrays.stream(EnumUtils.SURGES)
+                    .collect(Collectors.toMap(
+                            Function.identity(),
+                            surge ->
+                                    ATTRIBUTES.register(
+                                            surge.getName() + ".skill",
+                                            Surgebinding.MODID,
+                                            0,
+                                            0,
+                                            256
+                                    )));
 
 
 }

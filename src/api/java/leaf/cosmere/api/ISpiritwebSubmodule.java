@@ -45,12 +45,12 @@ public interface ISpiritwebSubmodule
 	}
 
 	//give a random starting item from this power set
-	default void GiveStartingItem(Player player)
+	default void giveStartingItem(Player player)
 	{
 	}
 
 	//give a specific starting item based on the manifestation passed in
-	default void GiveStartingItem(Player player, Manifestation manifestation)
+	default void giveStartingItem(Player player, Manifestation manifestation)
 	{
 	}
 
@@ -79,4 +79,9 @@ public interface ISpiritwebSubmodule
 		}
 		return powers;
 	}
+
+    default void giveEntityStartingManifestations(LivingEntity entity, ISpiritweb spiritweb)
+    {
+
+    }
 }

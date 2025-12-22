@@ -7,10 +7,12 @@ package leaf.cosmere.sandmastery.common.capabilities;
 import leaf.cosmere.api.CosmereAPI;
 import leaf.cosmere.api.ISpiritwebSubmodule;
 import leaf.cosmere.api.Manifestations;
+import leaf.cosmere.api.Taldain;
 import leaf.cosmere.api.helpers.CompoundNBTHelper;
 import leaf.cosmere.api.helpers.EffectsHelper;
 import leaf.cosmere.api.helpers.PlayerHelper;
 import leaf.cosmere.api.manifestation.Manifestation;
+import leaf.cosmere.api.math.MathHelper;
 import leaf.cosmere.api.spiritweb.ISpiritweb;
 import leaf.cosmere.client.Keybindings;
 import leaf.cosmere.sandmastery.client.SandmasteryKeybindings;
@@ -37,6 +39,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+
+import static leaf.cosmere.sandmastery.common.registries.SandmasteryManifestations.SANDMASTERY_POWERS;
 
 public class SandmasterySpiritwebSubmodule implements ISpiritwebSubmodule
 {
@@ -191,7 +195,7 @@ public class SandmasterySpiritwebSubmodule implements ISpiritwebSubmodule
 	}
 
 	@Override
-	public void GiveStartingItem(Player player)
+	public void giveStartingItem(Player player)
 	{
 		if (SandmasteryConfigs.SERVER.GIVE_QIDO_ON_FIRST_LOGIN.get())
 		{
@@ -202,7 +206,7 @@ public class SandmasterySpiritwebSubmodule implements ISpiritwebSubmodule
 	}
 
 	@Override
-	public void GiveStartingItem(Player player, Manifestation manifestation)
+	public void giveStartingItem(Player player, Manifestation manifestation)
 	{
 	}
 
@@ -408,4 +412,12 @@ public class SandmasterySpiritwebSubmodule implements ISpiritwebSubmodule
 		//update the tag value for later serialization.
 		this.sandmasteryTag.putInt("hotkeys", hotkeyFlags);
 	}
+
+    @Override
+    public void giveEntityStartingManifestations(LivingEntity entity, ISpiritweb spiritweb)
+    {
+        final int ribbonCount = MathHelper.randomInt(1, 24);
+        SANDMASTERY_POWERS.get(Taldain.Mastery.ELEVATE).get().grantManifestation(spiritweb, ribbonCount);
+        CosmereAPI.logger.info("Setting entity {} ribbons to {}", spiritweb.getLiving().getName().getString(), ribbonCount);
+    }
 }

@@ -34,4 +34,18 @@ public class AllomancyAttributes
 											16
 									)));
 
+    public static final Map<Metals.MetalType, AttributeRegistryObject<Attribute>> ALLOMANCY_SKILL_ATTRIBUTES =
+            Arrays.stream(EnumUtils.METAL_TYPES)
+                    .filter(metalType -> metalType != Metals.MetalType.ATIUM && metalType.hasAssociatedManifestation())
+                    .collect(Collectors.toMap(
+                            Function.identity(),
+                            type ->
+                                    ATTRIBUTES.register(
+                                            type.getName() + ".skill",
+                                            Allomancy.MODID,
+                                            0,
+                                            0,
+                                            256
+                                    )));
+
 }

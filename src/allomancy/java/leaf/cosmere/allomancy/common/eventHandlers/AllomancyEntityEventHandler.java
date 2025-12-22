@@ -86,11 +86,11 @@ public class AllomancyEntityEventHandler
 
 		if (event.getItem().getItem() instanceof MetalNuggetItem metalNuggetItem)
 		{
-			// Only consume the nugget if it contains Lerasium
-			if (metalNuggetItem.getMetalType().isGodMetal() && metalNuggetItem.getMetalType() != Metals.MetalType.LERASIUM)
-			{
-				return;
-			}
+            // Only consume the nugget if it contains Lerasium
+            if (!metalNuggetItem.getMetalType().hasAssociatedManifestation() &&
+                    metalNuggetItem.getMetalType() != Metals.MetalType.LERASIUM) {
+                return;
+            }
 			MiscHelper.consumeNugget(livingEntity, event.getItem(), 1);
 		}
 	}

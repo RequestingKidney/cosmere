@@ -43,6 +43,12 @@ public interface ISpiritweb extends INBTSerializable<CompoundTag>
 
 	void removeManifestation(Manifestation manifestation);
 
+    void raiseManifestationSkillLevel(Manifestation manifestation, int i);
+
+    void lowerManifestationSkillLevel(Manifestation manifestation, int i);
+
+    int getManifestationSkillLevel(Manifestation manifestation, boolean ignoreTemporaryPower);
+
 	Manifestation getSelectedManifestation();
 
 	boolean canTickManifestation(Manifestation manifestation);
@@ -76,7 +82,6 @@ public interface ISpiritweb extends INBTSerializable<CompoundTag>
 	void renderWorldEffects(RenderLevelStageEvent event);
 
 	void setSelectedManifestation(Manifestation manifestation);
-
 
 	void onPlayerClone(PlayerEvent.Clone event, ISpiritweb oldSpiritWeb);
 
