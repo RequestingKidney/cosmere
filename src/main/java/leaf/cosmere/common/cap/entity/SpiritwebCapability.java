@@ -224,6 +224,7 @@ public class SpiritwebCapability implements ISpiritweb
         if(nbt.contains("Connections"))
         {
             CompoundTag connectionNbt = nbt.getCompound("Connections");
+            connections.clear();
             for(String key : connectionNbt.getAllKeys())
             {
                 int[] data = connectionNbt.getIntArray(key);
@@ -462,11 +463,37 @@ public class SpiritwebCapability implements ISpiritweb
     }
 
     @Override
+    public int getConnectionStrength(UUID id)
+    {
+        if(hasConnection(id))
+        {
+            return getConnections().get(id).getStrength();
+        }
+        return 0;
+    }
+
+    @Override
+    public boolean hasConnection(UUID id)
+    {
+        return connections.containsKey(id);
+    }
+
+    @Override
+    public boolean hasConnectionType(Connections.ConnectionType connectionType)
+    {
+        return connections.values().stream().anyMatch(connection -> connection.getConnectionType() == connectionType);
+    }
+
+    @Override
     public void grantConnection(UUID id, Connection connection)
     {
         if(connections.containsKey(id))
         {
             int newStrength = connections.get(id).getStrength() + connection.getStrength();
+            if(newStrength > CosmereConfigs.SERVER_CONFIG.MAX_CONNECTION_STRENGTH.get())
+            {
+                newStrength = CosmereConfigs.SERVER_CONFIG.MAX_CONNECTION_STRENGTH.get();
+            }
             connections.get(id).setStrength(newStrength);
         }
         else
@@ -487,7 +514,18 @@ public class SpiritwebCapability implements ISpiritweb
         if(connections.containsKey(id))
         {
             int newStrength = connections.get(id).getStrength() + amount;
-            connections.get(id).setStrength(newStrength);
+            if(newStrength <= 0)
+            {
+                removeConnection(id);
+            }
+            else if (newStrength > CosmereConfigs.SERVER_CONFIG.MAX_CONNECTION_STRENGTH.get())
+            {
+                connections.get(id).setStrength(CosmereConfigs.SERVER_CONFIG.MAX_CONNECTION_STRENGTH.get());
+            }
+            else
+            {
+                connections.get(id).setStrength(newStrength);
+            }
         }
     }
 
@@ -582,6 +620,13 @@ public class SpiritwebCapability implements ISpiritweb
 		gg.pose().pushPose();
 		gg.pose().scale(textScale, textScale, 1f);
 		gg.drawString(mc.font, stringToDraw, (int) ((startX + xOffset) / textScale), (int) ((startY + size + 5) / textScale), 0xFFFFFF);
+        int offsetIndex = 1;
+        for(UUID connectionId : connections.keySet())
+        {
+            Connection connection = connections.get(connectionId);
+            String connectionString = "+" + connection.getStrength() + " Connection to " + connection.getConnectionType().getNameFromId(connectionId);
+            gg.drawString(mc.font, connectionString, (int) ((startX + xOffset) / textScale), (int) ((startY + size + (5 * (++offsetIndex))) / textScale), 0xFFFFFF);
+        }
 		gg.pose().popPose();
 
 		int mode = getMode(selectedManifestation);

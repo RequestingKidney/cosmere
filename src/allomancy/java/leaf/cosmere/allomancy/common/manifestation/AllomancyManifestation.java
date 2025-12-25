@@ -7,11 +7,14 @@ package leaf.cosmere.allomancy.common.manifestation;
 import leaf.cosmere.allomancy.client.AllomancyKeybindings;
 import leaf.cosmere.allomancy.common.capabilities.AllomancySpiritwebSubmodule;
 import leaf.cosmere.allomancy.common.registries.AllomancyStats;
+import leaf.cosmere.api.Connections;
 import leaf.cosmere.api.CosmereAPI;
 import leaf.cosmere.api.IHasMetalType;
 import leaf.cosmere.api.Manifestations;
 import leaf.cosmere.api.Metals;
+import leaf.cosmere.api.Shards;
 import leaf.cosmere.api.manifestation.Manifestation;
+import leaf.cosmere.api.spiritweb.Connection;
 import leaf.cosmere.api.spiritweb.ISpiritweb;
 import leaf.cosmere.common.cap.entity.SpiritwebCapability;
 import leaf.cosmere.common.charge.MetalmindChargeHelper;
@@ -23,6 +26,7 @@ import net.minecraft.stats.StatFormatter;
 import net.minecraft.stats.Stats;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.item.ItemStack;
 
 public class AllomancyManifestation extends Manifestation implements IHasMetalType
@@ -262,4 +266,34 @@ public class AllomancyManifestation extends Manifestation implements IHasMetalTy
 		final int mode = Math.max(getMode(data), 0);
 		return Mth.floor(allomanticStrength * mode);
 	}
+
+    @Override
+    public void grantManifestation(ISpiritweb spiritweb, int strength)
+    {
+        super.grantManifestation(spiritweb, strength);
+        if (spiritweb.hasConnection(Shards.Shard.PRESERVATION.getUUID()))
+        {
+            spiritweb.modifyConnection(Shards.Shard.PRESERVATION.getUUID(), strength);
+        }
+        else
+        {
+            spiritweb.grantConnection(Shards.Shard.PRESERVATION.getUUID(),
+                    new Connection(Connections.ConnectionType.SHARD, strength));
+        }
+    }
+
+    @Override
+    public void removeManifestation(ISpiritweb spiritweb)
+    {
+        if (spiritweb.hasConnection(Shards.Shard.PRESERVATION.getUUID()))
+        {
+            spiritweb.modifyConnection(Shards.Shard.PRESERVATION.getUUID(),
+                    (int) -this.getStrength(spiritweb, true));
+        }
+        else
+        {
+            spiritweb.removeConnection(Shards.Shard.PRESERVATION.getUUID());
+        }
+        super.removeManifestation(spiritweb);
+    }
 }

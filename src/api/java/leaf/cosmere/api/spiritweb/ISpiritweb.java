@@ -5,6 +5,7 @@
 
 package leaf.cosmere.api.spiritweb;
 
+import leaf.cosmere.api.Connections;
 import leaf.cosmere.api.ISpiritwebSubmodule;
 import leaf.cosmere.api.Manifestations;
 import leaf.cosmere.api.cosmereEffect.CosmereEffect;
@@ -28,6 +29,12 @@ public interface ISpiritweb extends INBTSerializable<CompoundTag>
 	LivingEntity getLiving();
 
     Map<UUID, Connection> getConnections();
+
+    int getConnectionStrength(UUID id);
+
+    boolean hasConnection(UUID id);
+
+    boolean hasConnectionType(Connections.ConnectionType connectionType);
 
     void grantConnection(UUID id, Connection connection);
 

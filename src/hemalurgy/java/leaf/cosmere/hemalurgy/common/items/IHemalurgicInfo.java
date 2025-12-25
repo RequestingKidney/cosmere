@@ -9,6 +9,8 @@ import leaf.cosmere.api.*;
 import leaf.cosmere.api.helpers.CompoundNBTHelper;
 import leaf.cosmere.api.helpers.StackNBTHelper;
 import leaf.cosmere.api.manifestation.Manifestation;
+import leaf.cosmere.api.spiritweb.Connection;
+import leaf.cosmere.api.spiritweb.ISpiritweb;
 import leaf.cosmere.api.text.TextHelper;
 import leaf.cosmere.common.cap.entity.SpiritwebCapability;
 import leaf.cosmere.common.registry.AttributesRegistry;
@@ -20,16 +22,21 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.IForgeRegistry;
+import oshi.util.tuples.Pair;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 
 public interface IHemalurgicInfo
 {
 	String stolen_identity_tag = "stolen_identity_tag";
+    String stolen_connection_id_tag = "stolen_connection_id_tag";
+    String stolen_connection_type_tag = "stolen_connection_type_tag";
 	List<Metals.MetalType> whiteList = new ArrayList<Metals.MetalType>(4);
 
 	default boolean matchHemalurgicIdentity(ItemStack stack, UUID uniqueID)
@@ -42,10 +49,49 @@ public interface IHemalurgicInfo
 		return StackNBTHelper.getUuid(stack, stolen_identity_tag).compareTo(uniqueID) == 0;
 	}
 
+    default boolean matchHemalurgicConnection(ItemStack stack, UUID uniqueID, Connections.ConnectionType connectionType)
+    {
+        if (!hemalurgicConnectionExists(stack))
+        {
+            return true;
+        }
+
+        return StackNBTHelper.getUuid(stack, stolen_connection_id_tag).compareTo(uniqueID) == 0 &&
+                StackNBTHelper.getInt(stack, stolen_connection_type_tag, 0) == connectionType.getID();
+    }
+
+    default boolean hemalurgicConnectionExists(ItemStack stack)
+    {
+        return StackNBTHelper.verifyExistance(stack, stolen_connection_id_tag) &&
+                StackNBTHelper.verifyExistance(stack, stolen_connection_type_tag);
+    }
+
 	default boolean hemalurgicIdentityExists(ItemStack stack)
 	{
 		return StackNBTHelper.verifyExistance(stack, stolen_identity_tag);
 	}
+
+    default void setHemalurgicConnectionId(ItemStack stack, UUID uniqueID)
+    {
+        StackNBTHelper.setUuid(stack, stolen_connection_id_tag, uniqueID);
+
+    }
+
+    default UUID getHemalurgicConnectionId(ItemStack stack)
+    {
+        return StackNBTHelper.getUuid(stack, stolen_connection_id_tag);
+    }
+
+    default void setHemalurgicConnectionType(ItemStack stack, Connections.ConnectionType connectionType)
+    {
+        StackNBTHelper.setInt(stack, stolen_connection_type_tag, connectionType.getID());
+
+    }
+
+    default Connections.ConnectionType getHemalurgicConnectionType(ItemStack stack)
+    {
+        return Connections.ConnectionType.valueOf(StackNBTHelper.getInt(stack, stolen_connection_type_tag, 0)).get();
+    }
 
 	default void setHemalurgicIdentity(ItemStack stack, UUID uniqueID)
 	{
@@ -199,12 +245,57 @@ public interface IHemalurgicInfo
 					}
 				}
 				return true;
+            case DURALUMIN:
+                if (SpiritwebCapability.get(playerEntity).resolve().isPresent())
+                {
+                    ISpiritweb spiritweb = SpiritwebCapability.get(playerEntity).resolve().get();
+                    if (hemalurgicConnectionExists(stack))
+                    {
+                        UUID connectionId = getHemalurgicConnectionId(stack);
+                        if (spiritweb.hasConnection(connectionId) &&
+                                spiritweb.hasConnectionType(getHemalurgicConnectionType(stack)))
+                        {
+                            int playerConnectionStrength = spiritweb.getConnectionStrength(connectionId);
+                            int spikeConnectionStrength = (int) getHemalurgicStrength(stack, spikeMetalType);
+                            setHemalurgicStrength(stack, spikeMetalType.getName(),
+                                    playerConnectionStrength + spikeConnectionStrength);
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        Map<UUID, Connection> connections = new HashMap<>();
+
+                        Pair<UUID, Connection> connection;
+                        if(entityKilled instanceof Player && SpiritwebCapability.get(entityKilled).resolve().isPresent())
+                        {
+                            ISpiritweb killedSpiritweb = SpiritwebCapability.get(entityKilled).resolve().get();
+                            connections.putAll(killedSpiritweb.getConnections());
+                            connection = getRandomConnectionFromList(connections);
+                            spiritweb.removeConnection(connection.getA());
+                        }
+                        else
+                        {
+                            connections.putAll(Connections.ConnectionType.getDefaultConnections(entityKilled.getType()));
+                            connection = getRandomConnectionFromList(connections);
+                        }
+                        if(connection == null) return false;
+
+                        setHemalurgicStrength(stack, spikeMetalType.getName(), connection.getB().getStrength());
+                        setHemalurgicConnectionId(stack, connection.getA());
+                        setHemalurgicConnectionType(stack, connection.getB().getConnectionType());
+                        setHemalurgicIdentity(stack, entityKilled.getUUID());
+                    }
+                }
+                return true;
 			case IRON:
 			case TIN:
 			case COPPER:
 			case ZINC:
 			case ALUMINUM:
-			case DURALUMIN:
 			case CHROMIUM:
 			case NICROSIL:
 
@@ -244,6 +335,13 @@ public interface IHemalurgicInfo
 
 		return null;
 	}
+
+    default Pair<UUID, Connection> getRandomConnectionFromList(Map<UUID, Connection> connectionsFound)
+    {
+        ArrayList<UUID> connectionIds = new ArrayList<>(connectionsFound.keySet());
+        Collections.shuffle(connectionIds);
+        return new Pair<>(connectionIds.get(0), connectionsFound.get(connectionIds.get(0)));
+    }
 
 	default Multimap<Attribute, AttributeModifier> getHemalurgicAttributes(Multimap<Attribute, AttributeModifier> attributeModifiers, ItemStack stack, Metals.MetalType metalType)
 	{
@@ -383,7 +481,7 @@ public interface IHemalurgicInfo
 		HemalurgicSpikeItem spikeItem = (HemalurgicSpikeItem) stack.getItem();
 		switch (spikeItem.getMetalType())
 		{
-			case IRON, TIN, COPPER, ZINC, NICROSIL ->
+            case IRON, TIN, COPPER, ZINC, NICROSIL, DURALUMIN ->
 			{
 				//nil
 			}

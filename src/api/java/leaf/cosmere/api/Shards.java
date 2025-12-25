@@ -60,7 +60,7 @@ public class Shards
 
         public UUID getUUID()
         {
-            return UUID.fromString(name());
+            return UUID.nameUUIDFromBytes(name().getBytes());
         }
 
         public Shard[] getComponentShards()

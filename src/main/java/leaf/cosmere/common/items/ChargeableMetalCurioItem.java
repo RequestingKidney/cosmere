@@ -50,6 +50,11 @@ public class ChargeableMetalCurioItem extends ChargeableItemBase implements IHas
 		return ICurioItem.super.getAttributesTooltip(tooltips, stack);
 	}
 
+    @Override
+    public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
+        return ICurioItem.super.getSlotsTooltip(tooltips, stack);
+    }
+
 	@Override
 	public boolean makesPiglinsNeutral(SlotContext slotContext, ItemStack stack)
 	{

@@ -16,9 +16,8 @@ public class CosmereServerConfig implements ICosmereConfig
 	public final ForgeConfigSpec.BooleanValue SCULK_CAN_HEAR_KINETIC_INVESTITURE;
 	public final ForgeConfigSpec.IntValue PLAYER_METALBORN_CHANCE;
 	public final ForgeConfigSpec.IntValue FULLBORN_POWERS_CHANCE;
-	public final ForgeConfigSpec.IntValue TWINBORN_POWERS_CHANCE_PLAYER;
-	public final ForgeConfigSpec.IntValue TWINBORN_POWERS_CHANCE_MOB;
-	public final ForgeConfigSpec.IntValue PLAYER_MISTING_TO_FERRING_DISTRIBUTION;
+    public final ForgeConfigSpec.IntValue MAX_CONNECTION_STRENGTH;
+    public final ForgeConfigSpec.IntValue PLAYER_OVERWORLD_CONNECTION_STRENGTH;
 	public final ForgeConfigSpec.IntValue RAIDER_POWERS_CHANCE;
 	public final ForgeConfigSpec.IntValue MOB_POWERS_CHANCE;
 	public final ForgeConfigSpec.DoubleValue EMOTIONAL_POWERS_SINGLE_TARGET_RANGE_MULTIPLIER;
@@ -38,9 +37,9 @@ public class CosmereServerConfig implements ICosmereConfig
 
 		PLAYER_METALBORN_CHANCE = builder.comment("1 in how many players should be metalborn?").defineInRange("playerMetalbornChance", 1, 1, 123456);
 		FULLBORN_POWERS_CHANCE = builder.comment("1 in how many should powered individuals should have full powers of one type").defineInRange("fullPowersChance", 16, 1, 123456);
-		TWINBORN_POWERS_CHANCE_PLAYER = builder.comment("If not full born, 1 in how many powered players should be twinborn? If players are not twinborn, they will be either a misting or ferring.").defineInRange("twinbornPowersChancePlayer", 1, 1, 123456);
-		TWINBORN_POWERS_CHANCE_MOB = builder.comment("If not full born, 1 in how many powered mobs should be twinborn?").defineInRange("twinbornPowersChanceMob", 16, 1, 123456);
-		PLAYER_MISTING_TO_FERRING_DISTRIBUTION = builder.comment("Ratio defined as a percentage of how many metalborn players are mistings vs ferrings. E.g. 25 means 25%, or 1 in 4 players will be mistings.").defineInRange("playerMistingToFerringDistribution", 50, 0, 100);
+
+        MAX_CONNECTION_STRENGTH = builder.comment("Maximum amount of allowed Connection").defineInRange("maxConnection", 256, 1, 1024);
+        PLAYER_OVERWORLD_CONNECTION_STRENGTH = builder.comment("Connection strength naturally afforded to player to the overworld").defineInRange("playerOverworldConnectionStrength", 32, 0, 256);
 
 		EMOTIONAL_POWERS_SINGLE_TARGET_RANGE_MULTIPLIER = builder.comment("Multiplier for emotional allomancy range when singe-targeting").defineInRange("emotionalAllomancySingleTargetRange", 1.5D, 1D, 123456D);
 
@@ -76,9 +75,8 @@ public class CosmereServerConfig implements ICosmereConfig
 		MOB_POWERS_CHANCE.clearCache();
 		RAIDER_POWERS_CHANCE.clearCache();
 		FULLBORN_POWERS_CHANCE.clearCache();
-		TWINBORN_POWERS_CHANCE_MOB.clearCache();
-		TWINBORN_POWERS_CHANCE_PLAYER.clearCache();
-		PLAYER_MISTING_TO_FERRING_DISTRIBUTION.clearCache();
+		MAX_CONNECTION_STRENGTH.clearCache();
+        PLAYER_OVERWORLD_CONNECTION_STRENGTH.clearCache();
 		EMOTIONAL_POWERS_SINGLE_TARGET_RANGE_MULTIPLIER.clearCache();
 	}
 

@@ -7,17 +7,22 @@ package leaf.cosmere.hemalurgy.common.items;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
+import leaf.cosmere.api.Connections;
 import leaf.cosmere.api.CosmereAPI;
 import leaf.cosmere.api.Manifestations;
 import leaf.cosmere.api.Metals;
 import leaf.cosmere.api.manifestation.Manifestation;
+import leaf.cosmere.api.spiritweb.Connection;
 import leaf.cosmere.common.cap.entity.SpiritwebCapability;
 import leaf.cosmere.common.items.ChargeableMetalCurioItem;
 import leaf.cosmere.hemalurgy.common.Hemalurgy;
 import leaf.cosmere.hemalurgy.common.config.HemalurgyConfigs;
 import leaf.cosmere.hemalurgy.common.registries.HemalurgyAttributes;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -39,9 +44,11 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
+import top.theillusivec4.curios.api.type.capability.ICurioItem;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -80,6 +87,23 @@ public class HemalurgicSpikeItem extends ChargeableMetalCurioItem implements IHe
 		return (!hasBindingCurse || (context.entity() instanceof Player player && player.isCreative()));
 	}
 
+    @Override
+    public List<Component> getAttributesTooltip(List<Component> tooltips, ItemStack stack)
+    {
+        if(this.getMetalType() == Metals.MetalType.DURALUMIN && getHemalurgicStrength(stack, Metals.MetalType.DURALUMIN) > 0)
+        {
+            UUID connectionId = getHemalurgicConnectionId(stack);
+            Connections.ConnectionType type = getHemalurgicConnectionType(stack);
+            int strength = (int) getHemalurgicStrength(stack, Metals.MetalType.DURALUMIN);
+            String connectionText = type.getNameFromId(connectionId);
+
+            Component component = Component.literal("+" + strength + " Connection to " + connectionText).withStyle(ChatFormatting.BLUE);
+            tooltips.add(component);
+
+        }
+        return super.getAttributesTooltip(tooltips, stack);
+    }
+
 
 	/**
 	 * generate new map of attributes for when used as a curio item.
@@ -92,9 +116,6 @@ public class HemalurgicSpikeItem extends ChargeableMetalCurioItem implements IHe
 		Metals.MetalType metalType = getMetalType();
 		if (stack.getItem() instanceof IHemalurgicInfo hemalurgicInfo)
 		{
-			//add hemalurgic attributes, if any.
-			hemalurgicInfo.getHemalurgicAttributes(attributeModifiers, stack, metalType);
-
             // add spiritweb buffs, if any
             UUID hemalurgicIdentity = getHemalurgicIdentity(stack);
             if (hemalurgicIdentity != null)
@@ -126,8 +147,10 @@ public class HemalurgicSpikeItem extends ChargeableMetalCurioItem implements IHe
                                 AttributeModifier.Operation.ADDITION
                         ));
             }
-		}
 
+            //add hemalurgic attributes, if any.
+            hemalurgicInfo.getHemalurgicAttributes(attributeModifiers, stack, metalType);
+		}
 
 		return attributeModifiers;
 	}
@@ -421,10 +444,28 @@ public class HemalurgicSpikeItem extends ChargeableMetalCurioItem implements IHe
 
 		if (isEquipping)
 		{
+            LivingEntity entity = slotContext.entity();
+            if(this.getMetalType() == Metals.MetalType.DURALUMIN && hemalurgicConnectionExists(stack))
+            {
+                SpiritwebCapability.get(entity).ifPresent(spiritweb -> {
+                    UUID connectionId = getHemalurgicConnectionId(stack);
+                    Connections.ConnectionType type = getHemalurgicConnectionType(stack);
+                    int strength = (int) getHemalurgicStrength(stack, Metals.MetalType.DURALUMIN);
+
+                    if(spiritweb.hasConnection(connectionId))
+                    {
+                        spiritweb.modifyConnection(connectionId, strength);
+                    }
+                    else
+                    {
+                        spiritweb.grantConnection(connectionId, new Connection(type, strength));
+                    }
+                });
+            }
 			//then do hemalurgy spike logic
 			//hurt the user
 			//spiritweb attributes are handled in metalmind
-			slotContext.entity().hurt(SPIKED.source(slotContext.entity().level()), 4);
+            entity.hurt(SPIKED.source(slotContext.entity().level()), 4);
 		}
 
 	}
@@ -438,7 +479,26 @@ public class HemalurgicSpikeItem extends ChargeableMetalCurioItem implements IHe
 		boolean isUnequipping = newStack.isEmpty() || !newStack.is(stack.getItem());
 		if (isUnequipping)
 		{
-			slotContext.entity().hurt(SPIKED.source(slotContext.entity().level()), 4);
+
+            LivingEntity entity = slotContext.entity();
+            if(this.getMetalType() == Metals.MetalType.DURALUMIN && hemalurgicConnectionExists(stack))
+            {
+                SpiritwebCapability.get(entity).ifPresent(spiritweb -> {
+                    UUID connectionId = getHemalurgicConnectionId(stack);
+                    Connections.ConnectionType type = getHemalurgicConnectionType(stack);
+                    int strength = (int) getHemalurgicStrength(stack, Metals.MetalType.DURALUMIN);
+
+                    if(spiritweb.hasConnection(connectionId))
+                    {
+                        spiritweb.modifyConnection(connectionId, -strength);
+                    }
+                    else
+                    {
+                        spiritweb.removeConnection(connectionId);
+                    }
+                });
+            }
+            entity.hurt(SPIKED.source(slotContext.entity().level()), 4);
 		}
 	}
 }

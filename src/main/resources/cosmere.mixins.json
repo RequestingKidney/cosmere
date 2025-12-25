@@ -5,7 +5,8 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "mixins.cosmere.refmap.json",
   "mixins": [
-    "VillagerMixin"
+    "VillagerMixin",
+    "GossipContainerMixin"
   ],
   "client": [
     "GameRendererMixin",

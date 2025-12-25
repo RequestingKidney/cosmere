@@ -4,10 +4,14 @@
 
 package leaf.cosmere.common.eventHandlers;
 
+import leaf.cosmere.api.Connections;
+import leaf.cosmere.api.spiritweb.Connection;
 import leaf.cosmere.common.Cosmere;
 import leaf.cosmere.common.cap.entity.SpiritwebCapability;
+import leaf.cosmere.common.config.CosmereConfigs;
 import leaf.cosmere.common.registration.impl.AttributeRegistryObject;
 import leaf.cosmere.common.registry.AttributesRegistry;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraftforge.event.entity.item.ItemTossEvent;
@@ -15,6 +19,8 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerXpEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+
+import java.util.UUID;
 
 @Mod.EventBusSubscriber(modid = Cosmere.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class PlayerEventHandler
@@ -87,4 +93,21 @@ public class PlayerEventHandler
 			event.setAmount((int) (event.getAmount() * attribute.getValue()));
 		}
 	}
+
+    @SubscribeEvent
+    public static void onWakeUp(net.minecraftforge.event.entity.player.PlayerWakeUpEvent event) {
+        if (event.getEntity().level().isClientSide) return;
+        if (event.wakeImmediately()) return;
+
+        ServerPlayer player = (ServerPlayer) event.getEntity();
+        SpiritwebCapability.get(player).ifPresent(spiritweb -> {
+            int strength = spiritweb.getConnectionStrength(UUID.nameUUIDFromBytes("OVERWORLD".getBytes()));
+            if(strength < CosmereConfigs.SERVER_CONFIG.PLAYER_OVERWORLD_CONNECTION_STRENGTH.get())
+            {
+                spiritweb.grantConnection(UUID.nameUUIDFromBytes("OVERWORLD".getBytes()), new Connection(
+                        Connections.ConnectionType.WORLD,
+                        8));
+            }
+        });
+    }
 }
