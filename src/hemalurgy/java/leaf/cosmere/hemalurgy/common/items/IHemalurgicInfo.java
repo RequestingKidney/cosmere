@@ -9,7 +9,7 @@ import leaf.cosmere.api.*;
 import leaf.cosmere.api.helpers.CompoundNBTHelper;
 import leaf.cosmere.api.helpers.StackNBTHelper;
 import leaf.cosmere.api.manifestation.Manifestation;
-import leaf.cosmere.api.spiritweb.Connection;
+import leaf.cosmere.api.connection.Connection;
 import leaf.cosmere.api.spiritweb.ISpiritweb;
 import leaf.cosmere.api.text.TextHelper;
 import leaf.cosmere.common.cap.entity.SpiritwebCapability;
@@ -22,20 +22,18 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.IForgeRegistry;
-import oshi.util.tuples.Pair;
 
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
 
 
 public interface IHemalurgicInfo
 {
 	String stolen_identity_tag = "stolen_identity_tag";
-    String stolen_connection_id_tag = "stolen_connection_id_tag";
+    String stolen_connection_map_id_tag = "stolen_connection_mapId_tag";
+    String stolen_connection_target_tag = "stolen_connection_target_tag";
     String stolen_connection_type_tag = "stolen_connection_type_tag";
 	List<Metals.MetalType> whiteList = new ArrayList<Metals.MetalType>(4);
 
@@ -56,14 +54,15 @@ public interface IHemalurgicInfo
             return true;
         }
 
-        return StackNBTHelper.getUuid(stack, stolen_connection_id_tag).compareTo(uniqueID) == 0 &&
+        return StackNBTHelper.getUuid(stack, stolen_connection_target_tag).compareTo(uniqueID) == 0 &&
                 StackNBTHelper.getInt(stack, stolen_connection_type_tag, 0) == connectionType.getID();
     }
 
     default boolean hemalurgicConnectionExists(ItemStack stack)
     {
-        return StackNBTHelper.verifyExistance(stack, stolen_connection_id_tag) &&
-                StackNBTHelper.verifyExistance(stack, stolen_connection_type_tag);
+        return StackNBTHelper.verifyExistance(stack, stolen_connection_target_tag) &&
+                StackNBTHelper.verifyExistance(stack, stolen_connection_type_tag) &&
+                StackNBTHelper.verifyExistance(stack, Metals.MetalType.DURALUMIN.getName());
     }
 
 	default boolean hemalurgicIdentityExists(ItemStack stack)
@@ -71,32 +70,31 @@ public interface IHemalurgicInfo
 		return StackNBTHelper.verifyExistance(stack, stolen_identity_tag);
 	}
 
-    default void setHemalurgicConnectionId(ItemStack stack, UUID uniqueID)
+    default void setHemalurgicConnection(ItemStack stack, UUID mapId, Connection connection)
     {
-        StackNBTHelper.setUuid(stack, stolen_connection_id_tag, uniqueID);
-
+        StackNBTHelper.setUuid(stack, stolen_connection_map_id_tag, mapId);
+        StackNBTHelper.setUuid(stack, stolen_connection_target_tag, connection.getConnectionTarget());
+        StackNBTHelper.setInt(stack, stolen_connection_type_tag, connection.getConnectionType().getID());
+        setHemalurgicStrength(stack, Metals.MetalType.DURALUMIN.getName(), connection.getStrength());
     }
 
-    default UUID getHemalurgicConnectionId(ItemStack stack)
+    default Connection getHemalurgicConnection(ItemStack stack)
     {
-        return StackNBTHelper.getUuid(stack, stolen_connection_id_tag);
+        return new Connection(
+                StackNBTHelper.getUuid(stack, stolen_connection_target_tag),
+                Connections.ConnectionType.valueOf(StackNBTHelper.getInt(stack, stolen_connection_type_tag, 0)).get(),
+                (int) getHemalurgicStrength(stack, Metals.MetalType.DURALUMIN.getName())
+        );
     }
 
-    default void setHemalurgicConnectionType(ItemStack stack, Connections.ConnectionType connectionType)
+    default UUID getHemalurgicConnectionMapId(ItemStack stack)
     {
-        StackNBTHelper.setInt(stack, stolen_connection_type_tag, connectionType.getID());
-
-    }
-
-    default Connections.ConnectionType getHemalurgicConnectionType(ItemStack stack)
-    {
-        return Connections.ConnectionType.valueOf(StackNBTHelper.getInt(stack, stolen_connection_type_tag, 0)).get();
+        return StackNBTHelper.getUuid(stack, stolen_connection_map_id_tag);
     }
 
 	default void setHemalurgicIdentity(ItemStack stack, UUID uniqueID)
 	{
 		StackNBTHelper.setUuid(stack, stolen_identity_tag, uniqueID);
-
 	}
 
 	default UUID getHemalurgicIdentity(ItemStack stack)
@@ -251,14 +249,14 @@ public interface IHemalurgicInfo
                     ISpiritweb spiritweb = SpiritwebCapability.get(playerEntity).resolve().get();
                     if (hemalurgicConnectionExists(stack))
                     {
-                        UUID connectionId = getHemalurgicConnectionId(stack);
-                        if (spiritweb.hasConnection(connectionId) &&
-                                spiritweb.hasConnectionType(getHemalurgicConnectionType(stack)))
+                        Connection spikeConnection = getHemalurgicConnection(stack);
+                        UUID mapId = getHemalurgicConnectionMapId(stack);
+                        if (spiritweb.hasConnection(spikeConnection))
                         {
-                            int playerConnectionStrength = spiritweb.getConnectionStrength(connectionId);
-                            int spikeConnectionStrength = (int) getHemalurgicStrength(stack, spikeMetalType);
-                            setHemalurgicStrength(stack, spikeMetalType.getName(),
-                                    playerConnectionStrength + spikeConnectionStrength);
+                            int playerConnectionStrength = spiritweb.getConnections().getConnection(spikeConnection).getStrength();
+                            int spikeConnectionStrength = spikeConnection.getStrength();
+                            spikeConnection.setStrength(playerConnectionStrength + spikeConnectionStrength);
+                            setHemalurgicConnection(stack, mapId, spikeConnection);
                         }
                         else
                         {
@@ -269,24 +267,30 @@ public interface IHemalurgicInfo
                     {
                         Map<UUID, Connection> connections = new HashMap<>();
 
-                        Pair<UUID, Connection> connection;
+                        Connection connection;
+                        UUID mapId;
                         if(entityKilled instanceof Player && SpiritwebCapability.get(entityKilled).resolve().isPresent())
                         {
                             ISpiritweb killedSpiritweb = SpiritwebCapability.get(entityKilled).resolve().get();
-                            connections.putAll(killedSpiritweb.getConnections());
+                            connections.putAll(killedSpiritweb.getConnections().getMap());
                             connection = getRandomConnectionFromList(connections);
-                            spiritweb.removeConnection(connection.getA());
+                            mapId = killedSpiritweb.getConnections().getMapId(connection);
+                            spiritweb.removeConnection(spiritweb.getConnections().getMapId(connection));
                         }
                         else
                         {
-                            connections.putAll(Connections.ConnectionType.getDefaultConnections(entityKilled.getType()));
+                            for(Connection defaultConnection : Connections.ConnectionType.getDefaultConnections(entityKilled.getType()))
+                            {
+                                connections.put(UUID.randomUUID(), defaultConnection);
+                            }
                             connection = getRandomConnectionFromList(connections);
+                            mapId = UUID.randomUUID();
+
                         }
                         if(connection == null) return false;
 
-                        setHemalurgicStrength(stack, spikeMetalType.getName(), connection.getB().getStrength());
-                        setHemalurgicConnectionId(stack, connection.getA());
-                        setHemalurgicConnectionType(stack, connection.getB().getConnectionType());
+
+                        setHemalurgicConnection(stack, mapId, connection);
                         setHemalurgicIdentity(stack, entityKilled.getUUID());
                     }
                 }
@@ -336,11 +340,11 @@ public interface IHemalurgicInfo
 		return null;
 	}
 
-    default Pair<UUID, Connection> getRandomConnectionFromList(Map<UUID, Connection> connectionsFound)
+    default Connection getRandomConnectionFromList(Map<UUID, Connection> connectionsFound)
     {
-        ArrayList<UUID> connectionIds = new ArrayList<>(connectionsFound.keySet());
-        Collections.shuffle(connectionIds);
-        return new Pair<>(connectionIds.get(0), connectionsFound.get(connectionIds.get(0)));
+        ArrayList<UUID> mapIds = new ArrayList<>(connectionsFound.keySet());
+        Collections.shuffle(mapIds);
+        return connectionsFound.get(mapIds.get(0));
     }
 
 	default Multimap<Attribute, AttributeModifier> getHemalurgicAttributes(Multimap<Attribute, AttributeModifier> attributeModifiers, ItemStack stack, Metals.MetalType metalType)

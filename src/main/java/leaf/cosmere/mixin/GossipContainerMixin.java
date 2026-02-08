@@ -1,6 +1,7 @@
 package leaf.cosmere.mixin;
 
 import leaf.cosmere.api.Connections;
+import leaf.cosmere.api.connection.Connection;
 import leaf.cosmere.api.spiritweb.ISpiritweb;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -38,8 +39,9 @@ public class GossipContainerMixin {
         if(!SpiritwebCapability.get(player).isPresent()) return;
         ISpiritweb spiritweb = SpiritwebCapability.get(player).resolve().get();
 
-        if(spiritweb.hasConnectionType(Connections.ConnectionType.VILLAGE)) {
-            int connectionLevel = spiritweb.getConnections().get(Connections.ConnectionType.VILLAGE.getUUID()).getStrength();
+        Connection connection = new Connection(Connections.ConnectionType.VILLAGE.getUUID(), Connections.ConnectionType.VILLAGE, 0);
+        if(spiritweb.hasConnection(connection)) {
+            int connectionLevel = spiritweb.getConnections().getConnection(connection).getStrength();
             adjustReputation += connectionLevel;
         }
 

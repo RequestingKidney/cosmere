@@ -12,7 +12,7 @@ import leaf.cosmere.api.CosmereAPI;
 import leaf.cosmere.api.Manifestations;
 import leaf.cosmere.api.Metals;
 import leaf.cosmere.api.manifestation.Manifestation;
-import leaf.cosmere.api.spiritweb.Connection;
+import leaf.cosmere.api.connection.Connection;
 import leaf.cosmere.common.cap.entity.SpiritwebCapability;
 import leaf.cosmere.common.items.ChargeableMetalCurioItem;
 import leaf.cosmere.hemalurgy.common.Hemalurgy;
@@ -20,9 +20,7 @@ import leaf.cosmere.hemalurgy.common.config.HemalurgyConfigs;
 import leaf.cosmere.hemalurgy.common.registries.HemalurgyAttributes;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -44,11 +42,9 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
-import top.theillusivec4.curios.api.type.capability.ICurioItem;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -92,10 +88,11 @@ public class HemalurgicSpikeItem extends ChargeableMetalCurioItem implements IHe
     {
         if(this.getMetalType() == Metals.MetalType.DURALUMIN && getHemalurgicStrength(stack, Metals.MetalType.DURALUMIN) > 0)
         {
-            UUID connectionId = getHemalurgicConnectionId(stack);
-            Connections.ConnectionType type = getHemalurgicConnectionType(stack);
+            Connection connection = getHemalurgicConnection(stack);
+            UUID connectionTarget = connection.getConnectionTarget();
+            Connections.ConnectionType connectionType = connection.getConnectionType();
             int strength = (int) getHemalurgicStrength(stack, Metals.MetalType.DURALUMIN);
-            String connectionText = type.getNameFromId(connectionId);
+            String connectionText = connectionType.getNameFromId(connectionTarget);
 
             Component component = Component.literal("+" + strength + " Connection to " + connectionText).withStyle(ChatFormatting.BLUE);
             tooltips.add(component);
@@ -445,20 +442,19 @@ public class HemalurgicSpikeItem extends ChargeableMetalCurioItem implements IHe
 		if (isEquipping)
 		{
             LivingEntity entity = slotContext.entity();
-            if(this.getMetalType() == Metals.MetalType.DURALUMIN && hemalurgicConnectionExists(stack))
+            if(this.getMetalType() == Metals.MetalType.DURALUMIN && hasHemalurgicPower(stack, Metals.MetalType.DURALUMIN))
             {
                 SpiritwebCapability.get(entity).ifPresent(spiritweb -> {
-                    UUID connectionId = getHemalurgicConnectionId(stack);
-                    Connections.ConnectionType type = getHemalurgicConnectionType(stack);
-                    int strength = (int) getHemalurgicStrength(stack, Metals.MetalType.DURALUMIN);
-
-                    if(spiritweb.hasConnection(connectionId))
+                    Connection connection = getHemalurgicConnection(stack);
+                    UUID mapId = getHemalurgicConnectionMapId(stack);
+                    if(spiritweb.hasConnection(connection))
                     {
-                        spiritweb.modifyConnection(connectionId, strength);
+                        setHemalurgicConnection(stack, spiritweb.getConnections().getMapId(connection), connection);
+                        spiritweb.grantConnection(connection);
                     }
                     else
                     {
-                        spiritweb.grantConnection(connectionId, new Connection(type, strength));
+                        spiritweb.grantConnection(mapId, connection);
                     }
                 });
             }
@@ -481,21 +477,12 @@ public class HemalurgicSpikeItem extends ChargeableMetalCurioItem implements IHe
 		{
 
             LivingEntity entity = slotContext.entity();
-            if(this.getMetalType() == Metals.MetalType.DURALUMIN && hemalurgicConnectionExists(stack))
+            if(this.getMetalType() == Metals.MetalType.DURALUMIN  && hasHemalurgicPower(stack, Metals.MetalType.DURALUMIN))
             {
                 SpiritwebCapability.get(entity).ifPresent(spiritweb -> {
-                    UUID connectionId = getHemalurgicConnectionId(stack);
-                    Connections.ConnectionType type = getHemalurgicConnectionType(stack);
-                    int strength = (int) getHemalurgicStrength(stack, Metals.MetalType.DURALUMIN);
-
-                    if(spiritweb.hasConnection(connectionId))
-                    {
-                        spiritweb.modifyConnection(connectionId, -strength);
-                    }
-                    else
-                    {
-                        spiritweb.removeConnection(connectionId);
-                    }
+                    Connection connection = getHemalurgicConnection(stack);
+                    UUID mapId = getHemalurgicConnectionMapId(stack);
+                    spiritweb.modifyConnection(mapId, -connection.getStrength());
                 });
             }
             entity.hurt(SPIKED.source(slotContext.entity().level()), 4);

@@ -14,7 +14,7 @@ import leaf.cosmere.api.Manifestations;
 import leaf.cosmere.api.Metals;
 import leaf.cosmere.api.Shards;
 import leaf.cosmere.api.manifestation.Manifestation;
-import leaf.cosmere.api.spiritweb.Connection;
+import leaf.cosmere.api.connection.Connection;
 import leaf.cosmere.api.spiritweb.ISpiritweb;
 import leaf.cosmere.common.cap.entity.SpiritwebCapability;
 import leaf.cosmere.common.charge.MetalmindChargeHelper;
@@ -26,7 +26,6 @@ import net.minecraft.stats.StatFormatter;
 import net.minecraft.stats.Stats;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.item.ItemStack;
 
 public class AllomancyManifestation extends Manifestation implements IHasMetalType
@@ -271,21 +270,20 @@ public class AllomancyManifestation extends Manifestation implements IHasMetalTy
     public void grantManifestation(ISpiritweb spiritweb, int strength)
     {
         super.grantManifestation(spiritweb, strength);
-        if (spiritweb.hasConnection(Shards.Shard.PRESERVATION.getUUID()))
+        if (spiritweb.hasConnectionToTarget(Shards.Shard.PRESERVATION.getUUID()))
         {
             spiritweb.modifyConnection(Shards.Shard.PRESERVATION.getUUID(), strength);
         }
         else
         {
-            spiritweb.grantConnection(Shards.Shard.PRESERVATION.getUUID(),
-                    new Connection(Connections.ConnectionType.SHARD, strength));
+            spiritweb.grantConnection(new Connection(Shards.Shard.PRESERVATION.getUUID(), Connections.ConnectionType.SHARD, strength));
         }
     }
 
     @Override
     public void removeManifestation(ISpiritweb spiritweb)
     {
-        if (spiritweb.hasConnection(Shards.Shard.PRESERVATION.getUUID()))
+        if (spiritweb.hasConnectionToTarget(Shards.Shard.PRESERVATION.getUUID()))
         {
             spiritweb.modifyConnection(Shards.Shard.PRESERVATION.getUUID(),
                     (int) -this.getStrength(spiritweb, true));

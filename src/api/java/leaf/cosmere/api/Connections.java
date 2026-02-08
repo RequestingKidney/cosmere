@@ -1,22 +1,15 @@
 package leaf.cosmere.api;
 
-import leaf.cosmere.api.spiritweb.Connection;
+import leaf.cosmere.api.connection.Connection;
 import leaf.cosmere.api.text.StringHelper;
 import net.minecraft.client.Minecraft;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -118,26 +111,24 @@ public class Connections
                     .orElse(BLANK);
         }
 
-        public static Map<UUID, Connection> getDefaultConnections(EntityType entityType)
+        public static List<Connection> getDefaultConnections(EntityType entityType)
         {
             if (entityType.equals(EntityType.VILLAGER))
             {
-                return Map.of(
-                        UUID.nameUUIDFromBytes("OVERWORLD".getBytes()), new Connection(WORLD, 32),
-                        VILLAGE.getUUID(), new Connection(VILLAGE, 32)
+                return List.of(
+                        new Connection(UUID.nameUUIDFromBytes("OVERWORLD".getBytes()), WORLD, 32),
+                        new Connection(VILLAGE.getUUID(), VILLAGE, 32)
                 );
             } else if (entityType.equals(EntityType.PILLAGER) || entityType.equals(EntityType.ILLUSIONER) ||
                     entityType.equals(EntityType.EVOKER))
             {
-                return Map.of(
-                        UUID.nameUUIDFromBytes("OVERWORLD".getBytes()), new Connection(WORLD, 32),
-                        ILLAGE.getUUID(), new Connection(ILLAGE, 32)
+                return List.of(
+                        new Connection(UUID.nameUUIDFromBytes("OVERWORLD".getBytes()), WORLD, 32),
+                        new Connection(ILLAGE.getUUID(), ILLAGE, 32)
                 );
             } else
             {
-                return Map.of(
-                        BLANK.getUUID(), new Connection(BLANK, 16)
-                );
+                return List.of(new Connection(BLANK.getUUID(), BLANK, 16));
             }
         }
 

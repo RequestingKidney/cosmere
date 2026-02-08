@@ -5,7 +5,7 @@
 package leaf.cosmere.common.eventHandlers;
 
 import leaf.cosmere.api.Connections;
-import leaf.cosmere.api.spiritweb.Connection;
+import leaf.cosmere.api.connection.Connection;
 import leaf.cosmere.common.Cosmere;
 import leaf.cosmere.common.cap.entity.SpiritwebCapability;
 import leaf.cosmere.common.config.CosmereConfigs;
@@ -101,12 +101,12 @@ public class PlayerEventHandler
 
         ServerPlayer player = (ServerPlayer) event.getEntity();
         SpiritwebCapability.get(player).ifPresent(spiritweb -> {
-            int strength = spiritweb.getConnectionStrength(UUID.nameUUIDFromBytes("OVERWORLD".getBytes()));
+            Connection connection = new Connection(UUID.nameUUIDFromBytes("OVERWORLD".getBytes()), Connections.ConnectionType.WORLD, 0);
+            int strength = spiritweb.getConnections().getConnection(connection).getStrength();
             if(strength < CosmereConfigs.SERVER_CONFIG.PLAYER_OVERWORLD_CONNECTION_STRENGTH.get())
             {
-                spiritweb.grantConnection(UUID.nameUUIDFromBytes("OVERWORLD".getBytes()), new Connection(
-                        Connections.ConnectionType.WORLD,
-                        8));
+                connection.setStrength(8);
+                spiritweb.grantConnection(connection);
             }
         });
     }

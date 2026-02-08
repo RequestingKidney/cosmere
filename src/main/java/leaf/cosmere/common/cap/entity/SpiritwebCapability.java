@@ -8,7 +8,6 @@ package leaf.cosmere.common.cap.entity;
 import com.google.common.collect.Maps;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import leaf.cosmere.api.Connections;
 import leaf.cosmere.api.CosmereAPI;
 import leaf.cosmere.api.IHasMetalType;
 import leaf.cosmere.api.ISpiritwebSubmodule;
@@ -16,7 +15,8 @@ import leaf.cosmere.api.Manifestations;
 import leaf.cosmere.api.cosmereEffect.CosmereEffect;
 import leaf.cosmere.api.cosmereEffect.CosmereEffectInstance;
 import leaf.cosmere.api.manifestation.Manifestation;
-import leaf.cosmere.api.spiritweb.Connection;
+import leaf.cosmere.api.connection.Connection;
+import leaf.cosmere.api.connection.ConnectionMap;
 import leaf.cosmere.api.spiritweb.ISpiritweb;
 import leaf.cosmere.client.PowerSaveState;
 import leaf.cosmere.common.Cosmere;
@@ -95,8 +95,7 @@ public class SpiritwebCapability implements ISpiritweb
 
 	private Map<Integer, Map<Manifestation, Integer>> powerSaveStorage;
 
-    private Map<UUID, Connection> connections = new HashMap<>();
-
+    private ConnectionMap connectionMap = new ConnectionMap();
 
 	public SpiritwebCapability(LivingEntity ent)
 	{
@@ -155,12 +154,7 @@ public class SpiritwebCapability implements ISpiritweb
 
 		nbt.put("PowerSaveStates", PowerSaveState.serialize());
 
-        CompoundTag connectionNbt = new CompoundTag();
-        connections.forEach((id, connection) -> {
-            connectionNbt.putIntArray(id.toString(),
-                    new int[] {connection.getConnectionType().getID(), connection.getStrength()});
-        });
-        nbt.put("Connections", connectionNbt);
+        nbt.put("Connections", connectionMap.save());
 
 		return nbt;
 	}
@@ -223,15 +217,7 @@ public class SpiritwebCapability implements ISpiritweb
 
         if(nbt.contains("Connections"))
         {
-            CompoundTag connectionNbt = nbt.getCompound("Connections");
-            connections.clear();
-            for(String key : connectionNbt.getAllKeys())
-            {
-                int[] data = connectionNbt.getIntArray(key);
-                Connections.ConnectionType.valueOf(data[0]).ifPresent(connectionType -> {
-                    connections.put(UUID.fromString(key), new Connection(connectionType, data[1]));
-                });
-            }
+            connectionMap.load(nbt.getCompound("Connections"));
         }
 	}
 
@@ -400,6 +386,15 @@ public class SpiritwebCapability implements ISpiritweb
 				}
 			}
 
+            if(connectionMap.isDirty())
+            {
+                if (spiritWebEntity instanceof ServerPlayer serverPlayer)
+                {
+                    syncToClients(serverPlayer);
+                    connectionMap.clean();
+                }
+            }
+
 			boolean shouldTriggerSculkEvent = false;
 
 			//Tick
@@ -457,76 +452,9 @@ public class SpiritwebCapability implements ISpiritweb
 	}
 
     @Override
-    public Map<UUID, Connection> getConnections()
+    public ConnectionMap getConnections()
     {
-        return connections;
-    }
-
-    @Override
-    public int getConnectionStrength(UUID id)
-    {
-        if(hasConnection(id))
-        {
-            return getConnections().get(id).getStrength();
-        }
-        return 0;
-    }
-
-    @Override
-    public boolean hasConnection(UUID id)
-    {
-        return connections.containsKey(id);
-    }
-
-    @Override
-    public boolean hasConnectionType(Connections.ConnectionType connectionType)
-    {
-        return connections.values().stream().anyMatch(connection -> connection.getConnectionType() == connectionType);
-    }
-
-    @Override
-    public void grantConnection(UUID id, Connection connection)
-    {
-        if(connections.containsKey(id))
-        {
-            int newStrength = connections.get(id).getStrength() + connection.getStrength();
-            if(newStrength > CosmereConfigs.SERVER_CONFIG.MAX_CONNECTION_STRENGTH.get())
-            {
-                newStrength = CosmereConfigs.SERVER_CONFIG.MAX_CONNECTION_STRENGTH.get();
-            }
-            connections.get(id).setStrength(newStrength);
-        }
-        else
-        {
-            connections.put(id, connection);
-        }
-    }
-
-    @Override
-    public void removeConnection(UUID id)
-    {
-        connections.remove(id);
-    }
-
-    @Override
-    public void modifyConnection(UUID id, int amount)
-    {
-        if(connections.containsKey(id))
-        {
-            int newStrength = connections.get(id).getStrength() + amount;
-            if(newStrength <= 0)
-            {
-                removeConnection(id);
-            }
-            else if (newStrength > CosmereConfigs.SERVER_CONFIG.MAX_CONNECTION_STRENGTH.get())
-            {
-                connections.get(id).setStrength(CosmereConfigs.SERVER_CONFIG.MAX_CONNECTION_STRENGTH.get());
-            }
-            else
-            {
-                connections.get(id).setStrength(newStrength);
-            }
-        }
+        return connectionMap;
     }
 
     //Copy things from an old spiritweb into the new one.
@@ -621,10 +549,10 @@ public class SpiritwebCapability implements ISpiritweb
 		gg.pose().scale(textScale, textScale, 1f);
 		gg.drawString(mc.font, stringToDraw, (int) ((startX + xOffset) / textScale), (int) ((startY + size + 5) / textScale), 0xFFFFFF);
         int offsetIndex = 1;
-        for(UUID connectionId : connections.keySet())
+        for(UUID mapId : connectionMap.getMap().keySet())
         {
-            Connection connection = connections.get(connectionId);
-            String connectionString = "+" + connection.getStrength() + " Connection to " + connection.getConnectionType().getNameFromId(connectionId);
+            int strength = connectionMap.getConnectionStrength();
+            String connectionString = "+" + connection.getStrength() + " Connection to " + connection.getConnectionType().getNameFromId(connection.getConnectionTarget());
             gg.drawString(mc.font, connectionString, (int) ((startX + xOffset) / textScale), (int) ((startY + size + (5 * (++offsetIndex))) / textScale), 0xFFFFFF);
         }
 		gg.pose().popPose();

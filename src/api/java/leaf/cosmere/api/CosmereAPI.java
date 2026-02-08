@@ -5,6 +5,7 @@
 package leaf.cosmere.api;
 
 import com.mojang.logging.LogUtils;
+import leaf.cosmere.api.connection.Connection;
 import leaf.cosmere.api.cosmereEffect.CosmereEffect;
 import leaf.cosmere.api.manifestation.Manifestation;
 import net.minecraft.core.Registry;
@@ -73,4 +74,25 @@ public class CosmereAPI
 		}
 		return COSMERE_EFFECT_REGISTRY;
 	}
+
+    @NotNull
+    private static final Lazy<ResourceKey<? extends Registry<Connection>>> CONNECTION_REGISTRY_NAME = registryKey(Connection.class, "connection");
+    private static IForgeRegistry<Connection> CONNECTION_REGISTRY;
+
+    @NotNull
+    public static ResourceKey<? extends Registry<Connection>> connectionRegistryName()
+    {
+        return CONNECTION_REGISTRY_NAME.get();
+    }
+
+
+    @NotNull
+    public static IForgeRegistry<Connection> connectionRegistry()
+    {
+        if (CONNECTION_REGISTRY == null)
+        {
+            CONNECTION_REGISTRY = RegistryManager.ACTIVE.getRegistry(connectionRegistryName());
+        }
+        return CONNECTION_REGISTRY;
+    }
 }
