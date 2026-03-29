@@ -67,6 +67,10 @@ public class SurgebindingSpiritwebSubmodule implements ISpiritwebSubmodule
 		//boolean anySurges = SurgebindingManifestations.SURGEBINDING_POWERS.values().stream().anyMatch((manifestation -> spiritweb.hasManifestation(manifestation.getManifestation())));
 		return idealsManager.getOrder() != null;
 	}
+	public int getIdeal()
+	{
+		return idealsManager.getIdeal();
+	}
 
 	@Override
 	public void deserialize(ISpiritweb spiritweb)

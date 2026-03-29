@@ -110,5 +110,64 @@ public class Manifestations
 			return CosmereAPI.manifestationRegistry().getValue(new ResourceLocation("cosmere", "none"));
 		}
 	}
+	public static class ManifestArrayBuilder
+	{
+		public static Manifestation[] getAll()
+		{
+			return (Manifestation[]) CosmereAPI.manifestationRegistry().getValues().toArray();
+		}
+
+		public static Manifestation[] getAllType(ManifestationTypes manifestationTypes)
+		{
+			int values;
+			switch (manifestationTypes)
+			{
+				case ALLOMANCY:
+				case FERUCHEMY:
+				{
+					values = 16;
+					break;
+				}
+				case SURGEBINDING:
+				{
+					values = 10;
+					break;
+				}
+				case SANDMASTERY:
+				{
+					values = 5;
+					break;
+				}
+				default:
+				{
+					values = 1;
+					break;
+				}
+
+			}
+			Manifestation[] manifests = new Manifestation[values];
+			for(int i = 0; i < values; i++)
+			{
+				manifests[i] = manifestationTypes.getManifestation(i);
+			}
+			return manifests;
+		}
+
+		public static Manifestation[] getAllMetal(Metals.MetalType metal)
+		{
+
+
+
+				int id = metal.getID();
+				return new Manifestation[]{ManifestationTypes.ALLOMANCY.getManifestation(id),
+										ManifestationTypes.FERUCHEMY.getManifestation(id)
+				};
+		}
+
+		public static Manifestation[] getArray(Manifestation manifest)
+		{
+			return new Manifestation[]{manifest};
+		}
+	}
 
 }

@@ -24,6 +24,7 @@ public class Constants
 		public static final ResourceLocation ROSHAR_CAP = new ResourceLocation("surgebinding", "roshar");
 		public static final ResourceLocation SCADRIAL_CAP = new ResourceLocation("allomancy", "scadrial");
 		public static final ResourceLocation HEMALURGY_WORLD_CAP = new ResourceLocation("hemalurgy", "world_cap");
+		public static final ResourceLocation INV_CONTAINER_CAP = new ResourceLocation(CosmereAPI.COSMERE_MODID, "i_container");
 	}
 
 	public static class Suffix
@@ -142,5 +143,7 @@ public class Constants
 
 		public static final MutableComponent POWER_ACTIVE = Component.translatable(Strings.POWER_ACTIVE);
 		public static final MutableComponent POWER_INACTIVE = Component.translatable(Strings.POWER_INACTIVE);
+		
 	}
+	
 }

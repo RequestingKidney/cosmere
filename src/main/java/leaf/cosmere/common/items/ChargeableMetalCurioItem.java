@@ -21,7 +21,7 @@ import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
 import java.util.List;
 
-public class ChargeableMetalCurioItem extends ChargeableItemBase implements IHasMetalType, ICurioItem
+public class ChargeableMetalCurioItem extends InvestableItemBase implements IHasMetalType, ICurioItem
 {
 	private final Metals.MetalType metalType;
 

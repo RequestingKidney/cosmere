@@ -5,6 +5,8 @@
 package leaf.cosmere.api.manifestation;
 
 import leaf.cosmere.api.CosmereAPI;
+import leaf.cosmere.api.investiture.IInvestiture;
+import leaf.cosmere.api.investiture.KineticInvestiture;
 import leaf.cosmere.api.Manifestations;
 import leaf.cosmere.api.providers.IManifestationProvider;
 import leaf.cosmere.api.spiritweb.ISpiritweb;
@@ -13,10 +15,17 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.IForgeRegistry;
+import org.checkerframework.checker.units.qual.K;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Manifestation implements IManifestationProvider
 {
 	final protected Manifestations.ManifestationTypes manifestationType;
+
+
 
 	public Manifestation()
 	{
@@ -134,6 +143,17 @@ public class Manifestation implements IManifestationProvider
 	public Attribute getAttribute()
 	{
 		return ForgeRegistries.ATTRIBUTES.getValue(getRegistryName());
+	}
+
+
+	public double maxInvestitureDraw(ISpiritweb data)
+	{
+		return 0;
+	}
+
+	public double minInvestitureDraw(ISpiritweb data)
+	{
+		return 0;
 	}
 
 }

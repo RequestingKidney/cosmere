@@ -7,10 +7,8 @@ package leaf.cosmere.allomancy.common.manifestation;
 import leaf.cosmere.allomancy.client.AllomancyKeybindings;
 import leaf.cosmere.allomancy.common.capabilities.AllomancySpiritwebSubmodule;
 import leaf.cosmere.allomancy.common.registries.AllomancyStats;
-import leaf.cosmere.api.CosmereAPI;
-import leaf.cosmere.api.IHasMetalType;
-import leaf.cosmere.api.Manifestations;
-import leaf.cosmere.api.Metals;
+import leaf.cosmere.api.*;
+import leaf.cosmere.api.investiture.*;
 import leaf.cosmere.api.manifestation.Manifestation;
 import leaf.cosmere.api.spiritweb.ISpiritweb;
 import leaf.cosmere.common.cap.entity.SpiritwebCapability;
@@ -25,7 +23,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 
-public class AllomancyManifestation extends Manifestation implements IHasMetalType
+public class AllomancyManifestation extends Manifestation implements IHasMetalType, IInvCreator
 {
 	private final Metals.MetalType metalType;
 
@@ -115,7 +113,7 @@ public class AllomancyManifestation extends Manifestation implements IHasMetalTy
 	{
 		//absolute value, because compounding uses negative modes.
 		int modeAbs = Mth.abs(getMode(data));
-		AllomancySpiritwebSubmodule allo = (AllomancySpiritwebSubmodule) ((SpiritwebCapability) data).getSubmodule(Manifestations.ManifestationTypes.ALLOMANCY);
+		AllomancySpiritwebSubmodule allo = (AllomancySpiritwebSubmodule) data.getSubmodule(Manifestations.ManifestationTypes.ALLOMANCY);
 
 		//make sure the user can afford the cost of burning this metal
 		while (modeAbs > 0)
@@ -158,12 +156,16 @@ public class AllomancyManifestation extends Manifestation implements IHasMetalTy
 		int mode = getMode(data);
 		final int cost = Mth.abs(mode);
 
-		AllomancySpiritwebSubmodule allo = (AllomancySpiritwebSubmodule) ((SpiritwebCapability) data).getSubmodule(Manifestations.ManifestationTypes.ALLOMANCY);
+		AllomancySpiritwebSubmodule allo = (AllomancySpiritwebSubmodule) data.getSubmodule(Manifestations.ManifestationTypes.ALLOMANCY);
 
 		//don't check every tick.
 		LivingEntity livingEntity = data.getLiving();
 		boolean isActiveTick = isActiveTick(data);
 		allo.adjustIngestedMetal(metalType, -cost, isActiveTick);
+		if(isActiveTick)
+		{
+			newInvest(data);
+		}
 
 		if (isActiveTick && livingEntity instanceof ServerPlayer serverPlayer)
 		{
@@ -173,6 +175,8 @@ public class AllomancyManifestation extends Manifestation implements IHasMetalTy
 		//if burning normally, do allomancy
 		if (mode > 0)
 		{
+			//todo: rewrite all applyEffectTick() methods to pull from investiture sources.
+
 			applyEffectTick(data);
 			return true;
 		}
@@ -260,4 +264,77 @@ public class AllomancyManifestation extends Manifestation implements IHasMetalTy
 		final int mode = Math.max(getMode(data), 0);
 		return Mth.floor(allomanticStrength * mode);
 	}
+	
+	@Override
+	public double maxInvestitureDraw(ISpiritweb data)
+	{
+		return (int) ((10 * getStrength(data,false)) + minInvestitureDraw(data));
+	}
+	
+	@Override
+	public double minInvestitureDraw(ISpiritweb data)
+	{
+		if(isFlaring(data))
+		{
+			return 100;
+		}
+		return 50;
+	}
+	
+
+	public final Manifestation[] appManifestComp = Manifestations.ManifestArrayBuilder.getAllMetal(this.getMetalType());
+
+	public int beuGrantAmount(ISpiritweb web, int mode)
+	{
+		double strength = getStrength(web, false);
+		double baseStrength = getStrength(web, true);
+
+		int beu = 50 + Mth.floor(strength) + Mth.floor(baseStrength);
+		beu *= Math.abs(mode);
+
+		return beu;
+	}
+
+	public int beuGrantAmount(ISpiritweb web)
+	{
+		return beuGrantAmount(web, getMode(web));
+	}
+
+	@Override
+	public KineticInvestiture newInvest(ISpiritweb data)
+	{
+
+		//gets investiture
+		int beu = beuGrantAmount(data);
+
+		Manifestation[] appManifest;
+		if(isCompounding(data))
+		{
+			appManifest = appManifestComp;
+		}
+		else
+		{
+			appManifest = Manifestations.ManifestArrayBuilder.getArray(this);
+		}
+		KineticInvestiture sub = new KineticInvestiture(
+				data,
+				InvHelpers.Shard.PRESERVATION,
+				beu,
+				appManifest);
+		sub.setPriority(5);
+		return sub;
+	}
+
+	@Override
+	public KineticInvestiture newInvest(ISpiritweb data, double beu, double decay)
+	{
+		return newInvest(data);
+	}
+
+	@Override
+	public KineticInvestiture newInvest(ISpiritweb data, double beu)
+	{
+		return newInvest(data);
+	}
+
 }

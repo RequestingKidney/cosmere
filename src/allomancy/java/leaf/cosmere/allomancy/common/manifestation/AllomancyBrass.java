@@ -67,6 +67,8 @@ public class AllomancyBrass extends AllomancyManifestation
 		String uuid = data.getLiving().getStringUUID();
 		AllomancyBrass.BrassThread playerThread = playerThreadMap.get(data.getLiving().getStringUUID());
 		boolean isSingleTarget = false;
+
+
 		if (playerThread != null)
 		{
 			isSingleTarget = playerThread.isSingleTarget;
@@ -82,6 +84,8 @@ public class AllomancyBrass extends AllomancyManifestation
 
 			//todo, replace x * mode with config based value
 			double allomanticStrength = getStrength(data, false);
+
+			double investiture = data.runInvestiturePull(this);
 
 			if (playerThreadMap.get(uuid) == null)
 			{
@@ -105,8 +109,10 @@ public class AllomancyBrass extends AllomancyManifestation
 
 			for (LivingEntity e : entitiesToAffect)
 			{
+
 				if (e instanceof Mob mob)
 				{
+					/*
 					switch (mode)
 					{
 						case 2:
@@ -122,7 +128,28 @@ public class AllomancyBrass extends AllomancyManifestation
 						default://stop angry targets from attacking things
 							mob.setLastHurtByMob(null);
 					}
+					*/
+					if(investiture >= beuGrantAmount(data, 2))
+					{
+						if (allomanticStrength > 15)
+							mob.addEffect(EffectsHelper.getNewEffect(
+									AllomancyEffects.ALLOMANTIC_BRASS_STUN.getMobEffect(),
+									0,      // no amplification system in place
+									20 * 5
+							));
+						mob.setTarget(null);
+					}
+					if(investiture >= beuGrantAmount(data, 1))
+					{
+						mob.setAggressive(false);
+					}
+					if(investiture >= beuGrantAmount(data, 0))
+					{
+						mob.setLastHurtByMob(null);
+					}
 				}
+
+
 			}
 
 			if (!isSingleTarget)

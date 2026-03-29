@@ -110,6 +110,7 @@ public class AllomancyBronze extends AllomancyManifestation
 			return false;
 		}
 		//do not multiply strength by mode here, flaring doesn't help you pierce copper, and copper flare doesn't increase cognitive concealment
+		//maybe dedicating a high-enough amount of investiture can overcome this?
 		final double bronzeStrength = bronzeAllomancyManifestation.getStrength(seeker, false);
 
 		//todo range to config

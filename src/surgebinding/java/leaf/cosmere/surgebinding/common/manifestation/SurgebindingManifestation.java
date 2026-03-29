@@ -36,4 +36,6 @@ public class SurgebindingManifestation extends Manifestation
 		SurgebindingSpiritwebSubmodule sb = (SurgebindingSpiritwebSubmodule) spiritwebCapability.getSubmodule(Manifestations.ManifestationTypes.SURGEBINDING);
 		return data.hasManifestation(this) && sb.getStormlight() > 0;
 	}
+
+	public void infusionTick()
 }
