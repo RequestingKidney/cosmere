@@ -90,8 +90,7 @@ ext {
 			"patchouli_version": patchouli_version_range,
 			"jade_version"     : jade_version_range,
 			"jei_version"      : jei_version_range,
-			"curios_version"   : curios_version_range,
-            "pufferfish_version": pufferfish_version_range
+			"curios_version"   : curios_version_range
 	]
 }
 
@@ -399,10 +398,6 @@ def setupRunConfig(RunConfig runConfig, boolean supportsGameTests, String direct
 
 repositories {
 	maven {
-		// location of the maven that hosts JEI files
-		url "https://dvs1.progwml6.com/files/maven/"
-	}
-	maven {
 		//used for patchouli
 		url "https://maven.blamejared.com/"
 	}
@@ -420,10 +415,6 @@ repositories {
 			includeGroup "curse.maven"
 		}
 	}
-
-    maven {
-        url = uri("https://maven.puffish.net")
-    }
 
 	whenObjectAdded {
 //ForgeGradle adds these in an afterEvaluate, so we need to catch them as they're added and exclude mod artifacts/groups
@@ -478,8 +469,6 @@ dependencies {
 
 	compileOnly fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}-FORGE:api")
 	runtimeOnly fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}-FORGE")
-
-    runtimeOnly fg.deobf("net.puffish:skillsmod:${pufferfish_version}:forge")
 
 }
 

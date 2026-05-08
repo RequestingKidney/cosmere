@@ -12,14 +12,27 @@ import leaf.cosmere.api.cosmereEffect.CosmereEffectInstance;
 import leaf.cosmere.api.helpers.EffectsHelper;
 import leaf.cosmere.api.manifestation.Manifestation;
 import leaf.cosmere.api.spiritweb.ISpiritweb;
+import leaf.cosmere.client.gui.GuiUtils;
+import leaf.cosmere.common.cap.entity.SpiritwebCapability;
 import leaf.cosmere.common.charge.MetalmindChargeHelper;
+import leaf.cosmere.feruchemy.client.gui.FeruchemyInfoBlock;
+import leaf.cosmere.feruchemy.client.utils.FeruchemyChargeThread;
 import leaf.cosmere.feruchemy.common.registries.FeruchemyEffects;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+
+import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class FeruchemyManifestation extends Manifestation implements IHasMetalType
 {
+	private static final HashMap<Metals.MetalType, Double> metalmindChargesMap = new HashMap<>();
+	private static final HashMap<Metals.MetalType, Double> metalmindMaxChargesMap = new HashMap<>();
 	protected final Metals.MetalType metalType;
 
 	public FeruchemyManifestation(Metals.MetalType metalType)
@@ -74,6 +87,36 @@ public class FeruchemyManifestation extends Manifestation implements IHasMetalTy
 			data.removeEffect(EffectsHelper.getEffectUUID(getStoringEffect(), effectSource));
 			data.removeEffect(EffectsHelper.getEffectUUID(getTappingEffect(), effectSource));
 		}
+	}
+
+	@OnlyIn(Dist.CLIENT)
+	private void collectMenuInfo()
+	{
+		if (Minecraft.getInstance().player != null && Minecraft.getInstance().player.tickCount % 2 == 1)    // only do on odd tick
+		{
+			metalmindChargesMap.clear();
+			metalmindChargesMap.putAll(FeruchemyChargeThread.getInstance().getCharges());
+
+			metalmindMaxChargesMap.clear();
+			metalmindMaxChargesMap.putAll(FeruchemyChargeThread.getInstance().getMaximumCharges());
+		}
+	}
+
+	@Override
+	public int getInvestitureRemaining(ISpiritweb spiritweb)
+	{
+		collectMenuInfo();
+		return (int) Math.floor(metalmindChargesMap.getOrDefault(metalType, 0d));
+	}
+
+	@Override
+	public float getInvestitureHud(ISpiritweb spiritweb)
+	{
+		collectMenuInfo();
+		double maximum = metalmindMaxChargesMap.getOrDefault(metalType, 0d);
+		double charge = metalmindChargesMap.getOrDefault(metalType, 0d);
+		if (maximum <= 0) return 0.f;
+		return (float) (charge/maximum);
 	}
 
 	protected CosmereEffect getTappingEffect()
@@ -172,6 +215,64 @@ public class FeruchemyManifestation extends Manifestation implements IHasMetalTy
 		CosmereEffectInstance currentEffect = EffectsHelper.getNewEffect(effect, data.getLiving(), Math.abs(mode));//todo check this strength
 
 		data.addEffect(currentEffect);
+	}
+
+	@Override
+	public AbstractWidget getInfoBlock()
+	{
+		AtomicReference<FeruchemyInfoBlock> retVal = new AtomicReference<>(null);
+
+		SpiritwebCapability.get(Minecraft.getInstance().player).ifPresent( spiritweb -> {
+			int x = 0;
+			int y = 0;
+			int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
+			int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
+			int width = GuiUtils.getInfoBoxWidth(Minecraft.getInstance());
+			int height = GuiUtils.getInfoBoxHeight(Minecraft.getInstance());
+
+			switch (this.metalType)
+			{
+				// top left
+				case IRON:
+				case PEWTER:
+				case DURALUMIN:
+				case CHROMIUM:
+					x = 10;
+					y = 10;
+					break;
+				// top right
+				case COPPER:
+				case ZINC:
+				case STEEL:
+				case TIN:
+					x = screenWidth - width - 10;
+					y = 10;
+					break;
+				// bottom left
+				case ALUMINUM:
+				case NICROSIL:
+				case GOLD:
+				case BENDALLOY:
+				case ATIUM:
+					x = 10;
+					y = screenHeight - height - 10;
+					break;
+				// bottom right
+				case CADMIUM:
+				case ELECTRUM:
+				case BRASS:
+				case BRONZE:
+					x = screenWidth - width - 10;
+					y = screenHeight - height - 10;
+					break;
+				default:
+					break;
+			}
+
+			retVal.set(new FeruchemyInfoBlock(x, y, width, height, spiritweb, this));
+		});
+
+		return retVal.get();
 	}
 
 	protected CosmereEffect getEffect(int mode)

@@ -34,6 +34,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.RangedAttribute;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -129,28 +130,24 @@ public class NicrosilMenu extends Screen implements ISyncSpiritweb {
                     if (spiritwebPowerButton.getAttribute() == null ||
                             spiritwebPowerButton.getAttribute() == heldButton.attribute) {
                         if (spiritweb.getLiving() instanceof Player player) {
-                            LazyOptional<ICuriosItemHandler> curiosItemHandler = CuriosApi.getCuriosInventory(player);
-                            if (curiosItemHandler.resolve().isPresent()) {
-                                ICuriosItemHandler itemHandler = curiosItemHandler.resolve().get();
-                                ItemStack itemStack = itemHandler.getEquippedCurios()
-                                        .getStackInSlot(spiritwebPowerButton.getContainer().curioItemSlot);
-                                if (itemStack.getItem() instanceof IHoldsPowers item) {
-                                    final Attribute attribute = heldButton.attribute;
-                                    final Integer attributeStrength = heldButton.strength;
+                            ItemStack itemStack = CosmereAttributeUtils.getPowerItem(player, spiritwebPowerButton.getContainer().itemSlot, spiritwebPowerButton.getContainer().isCurio);
+                            if (itemStack.getItem() instanceof IHoldsPowers item) {
+                                final Attribute attribute = heldButton.attribute;
+                                AttributeInstance attributeInstance = player.getAttribute(attribute);
 
-                                    if (item.trySetAttunedPlayer(itemStack, player)) {
-                                        Cosmere.packetHandler().sendToServer(new StoreTapPowerMessage(
-                                                attribute,
-                                                attributeStrength,
-                                                spiritwebPowerButton.getContainer().curioItemSlot,
-                                                true,
-                                                spiritwebPowerButton.getSlotIndex()));
+                                if (item.trySetAttunedPlayer(itemStack, player)) {
+                                    Cosmere.packetHandler().sendToServer(new StoreTapPowerMessage(
+                                            attribute,
+                                            (int) attributeInstance.getBaseValue(),
+                                            spiritwebPowerButton.getContainer().itemSlot,
+                                            spiritwebPowerButton.getSlotIndex(),
+                                            true,
+                                            spiritwebPowerButton.getContainer().isCurio));
 
-                                        applyLocalStore(heldButton, spiritwebPowerButton);
-                                    }
-                                    heldButton = null;
-                                    return true;
+                                    applyLocalStore(heldButton, spiritwebPowerButton);
                                 }
+                                heldButton = null;
+                                return true;
                             }
                         }
                     }
@@ -161,23 +158,19 @@ public class NicrosilMenu extends Screen implements ISyncSpiritweb {
             for (PowerButton spiritwebPowerButton : spiritwebPowerButtons) {
                 if (spiritwebPowerButton.highlighted && spiritwebPowerButton.getAttribute() != null) {
                     if (spiritweb.getLiving() instanceof Player player) {
-                        LazyOptional<ICuriosItemHandler> curiosItemHandler = CuriosApi.getCuriosInventory(player);
-                        if (curiosItemHandler.resolve().isPresent()) {
-                            ICuriosItemHandler itemHandler = curiosItemHandler.resolve().get();
-                            ItemStack itemStack = itemHandler.getEquippedCurios()
-                                    .getStackInSlot(spiritwebPowerButton.getContainer().curioItemSlot);
-                            if (itemStack.getItem() instanceof IHoldsPowers item) {
-                                if (item.getPlayerIsAttuned(itemStack, player)) {
-                                    Cosmere.packetHandler().sendToServer(new StoreTapPowerMessage(
-                                            spiritwebPowerButton.getAttribute(),
-                                            spiritwebPowerButton.getStrength(),
-                                            spiritwebPowerButton.getContainer().curioItemSlot,
-                                            false,
-                                            spiritwebPowerButton.getSlotIndex()));
-                                    applyLocalTap(spiritwebPowerButton);
-                                }
-                                return true;
+                        ItemStack itemStack = CosmereAttributeUtils.getPowerItem(player, spiritwebPowerButton.getContainer().itemSlot, spiritwebPowerButton.getContainer().isCurio);
+                        if (itemStack.getItem() instanceof IHoldsPowers item) {
+                            if (item.getPlayerIsAttuned(itemStack, player)) {
+                                Cosmere.packetHandler().sendToServer(new StoreTapPowerMessage(
+                                        spiritwebPowerButton.getAttribute(),
+                                        spiritwebPowerButton.getStrength(),
+                                        spiritwebPowerButton.getContainer().itemSlot,
+                                        spiritwebPowerButton.getSlotIndex(),
+                                        false,
+                                        spiritwebPowerButton.getContainer().isCurio));
+                                applyLocalTap(spiritwebPowerButton);
                             }
+                            return true;
                         }
                     }
                 }
@@ -208,24 +201,7 @@ public class NicrosilMenu extends Screen implements ISyncSpiritweb {
     }
 
     @Override
-    public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta)
-    {
-        if(heldButton != null)
-        {
-            int newStrength = heldButton.strength + (pDelta > 0 ? 1 : -1);
-            int currentStrength = (int) spiritweb.getLiving().getAttribute(heldButton.attribute).getBaseValue();
-
-            if (newStrength < 1)
-            {
-                newStrength = 1;
-            }
-            else if (newStrength > currentStrength)
-            {
-                newStrength = currentStrength;
-            }
-
-            heldButton.strength = newStrength;
-        }
+    public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
         return true;
     }
 
@@ -235,12 +211,11 @@ public class NicrosilMenu extends Screen implements ISyncSpiritweb {
 
     public void closeScreen() {
         this.closed = true;
+        this.heldButton = null;
         getMinecraft().setScreen(null);
     }
 
-    private void applyLocalStore(PowerButton held, PowerButton targetSlot)
-    {
-        int currentStrength = (int) spiritweb.getLiving().getAttribute(held.attribute).getBaseValue();
+    private void applyLocalStore(PowerButton held, PowerButton targetSlot) {
         playerSpiritwebPowerButtons.removeIf(btn -> btn.getAttribute() == held.attribute);
 
 
@@ -274,13 +249,6 @@ public class NicrosilMenu extends Screen implements ISyncSpiritweb {
             }
             setupAttributeButtons(availableAttributes, held.attribute, held.strength);
         }
-        else
-        {
-            final List<AttributeInstance> availableAttributes = getAvailableAttributes();
-            playerSpiritwebPowerButtons.clear();
-            sidedMenuButtons.clear();
-            setupAttributeButtons(availableAttributes, held.attribute, currentStrength - held.strength);
-        }
     }
 
     private void applyLocalTap(PowerButton fromSlot) {
@@ -308,11 +276,9 @@ public class NicrosilMenu extends Screen implements ISyncSpiritweb {
         sidedMenuButtons.clear();
         availableAttributes.removeIf(att -> att.getAttribute() == attribute);
         availableAttributes.add(spiritweb.getLiving().getAttribute(attribute));
-        spiritweb.getLiving().getAttribute(attribute).setBaseValue(strength);
         selectedPowerType = CosmereAttributeUtils.getManifestationType(attribute);
         availableAttributes.sort(Comparator.comparingInt(
-                (availableAttribute -> CosmereAttributeUtils.getManifestationType(availableAttribute.getAttribute())
-                        .getID())));
+                (availableAttribute -> CosmereAttributeUtils.getAttributePowerId(availableAttribute.getAttribute()))));
         setupAttributeButtons(availableAttributes, attribute, totalStrength);
     }
 
@@ -342,10 +308,11 @@ public class NicrosilMenu extends Screen implements ISyncSpiritweb {
                         final double middleX = width / 2f;
                         final double middleY = height / 2f;
                         PowerButtonContainer spiritwebContainer =
-                                new PowerButtonContainer(middleX, middleY, item.getMaxCapacity(), 1, i, (Item) item);
-                        Attribute[] attributes = item.getAttributes(itemHandler.getEquippedCurios().getStackInSlot(i));
+                                new PowerButtonContainer(middleX, middleY, item.getMaxCapacity(), 1, i, (Item) item,
+                                        true);
+                        Attribute[] attributes = item.getAttributes(itemStack);
                         Integer[] manifestationStrengths =
-                                item.getAttributeStrengths(itemHandler.getEquippedCurios().getStackInSlot(i));
+                                item.getAttributeStrengths(itemStack);
                         for (int j = 0; j < item.getMaxCapacity(); j++) {
                             PowerButton spiritwebPowerButton = new PowerButton(middleX, middleY,
                                     CosmereAttributeUtils.getManifestationType(attributes[j]), spiritwebContainer,
@@ -372,6 +339,45 @@ public class NicrosilMenu extends Screen implements ISyncSpiritweb {
                     }
                 }
             }
+            Inventory playerInventory = player.getInventory();
+
+            for (int i = 0; i < playerInventory.getContainerSize(); i++) {
+                ItemStack itemStack = playerInventory.getItem(i);
+                if (itemStack.getItem() instanceof IHoldsPowers item) {
+                    final double middleX = width / 2f;
+                    final double middleY = height / 2f;
+                    PowerButtonContainer spiritwebContainer =
+                            new PowerButtonContainer(middleX, middleY, item.getMaxCapacity(), 1, i, (Item) item,
+                                    false);
+                    Attribute[] attributes = item.getAttributes(itemStack);
+                    Integer[] manifestationStrengths =
+                            item.getAttributeStrengths(itemStack);
+                    for (int j = 0; j < item.getMaxCapacity(); j++) {
+                        PowerButton spiritwebPowerButton = new PowerButton(middleX, middleY,
+                                CosmereAttributeUtils.getManifestationType(attributes[j]), spiritwebContainer,
+                                (byte) j, item.getPlayerIsAttuned(itemStack, player));
+                        spiritwebPowerButton.setAttribute(attributes[j]);
+                        spiritwebPowerButton.setStrength(manifestationStrengths[j]);
+                        spiritwebPowerButtons.add(spiritwebPowerButton);
+                        spiritwebContainer.addButton(spiritwebPowerButton);
+                    }
+
+                    switch (item.getMaxCapacity()) {
+                        case 3:
+                            necklaceMenus.add(spiritwebContainer);
+                            break;
+                        case 2:
+                            braceletMenus.add(spiritwebContainer);
+                            break;
+                        case 1:
+                            ringMenus.add(spiritwebContainer);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+
         }
     }
 
@@ -381,11 +387,6 @@ public class NicrosilMenu extends Screen implements ISyncSpiritweb {
 
         for (AttributeInstance spiritwebPower : spiritwebPowers) {
             if (spiritwebPower.getBaseValue() == 0 && strength == 0) {
-                continue;
-            }
-
-            if(spiritwebPower.getAttribute() == newPower && strength == 0)
-            {
                 continue;
             }
 
@@ -404,14 +405,12 @@ public class NicrosilMenu extends Screen implements ISyncSpiritweb {
                         (int) spiritwebPower.getBaseValue());
                 playerSpiritwebPowerButtons.add(p);
             }
-        };
-        spiritwebPowers.sort(Comparator.comparingInt(spiritwebPower -> CosmereAttributeUtils.getAttributeId(spiritwebPower.getAttribute())));
+        }
 
         for (ManifestationTypes type : foundPowerTypes) {
             PowerButton btn = PowerButton.createSideMenuButton(type);
             sidedMenuButtons.add(btn);
         }
-        sidedMenuButtons.sort(Comparator.comparingInt(btn -> btn.manifestationType.getID()));
     }
 
     @Override
@@ -768,7 +767,7 @@ public class NicrosilMenu extends Screen implements ISyncSpiritweb {
             powers.removeIf(attributeInstance -> attributeInstance.getAttribute() ==
                     CosmereAttributeUtils.getAttribute(ManifestationTypes.FERUCHEMY,
                             Metals.MetalType.NICROSIL.getID()));
-            spiritwebPowers.addAll(submodule.getEntityPowers(spiritweb.getLiving()));
+            spiritwebPowers.addAll(powers);
         });
 
         return spiritwebPowers;
@@ -915,8 +914,9 @@ public class NicrosilMenu extends Screen implements ISyncSpiritweb {
     }
 
     public static class PowerButtonContainer {
-        public Integer curioItemSlot;
+        public Integer itemSlot;
         public Item item;
+        public boolean isCurio;
 
         protected double centerX;
         protected double centerY;
@@ -956,8 +956,8 @@ public class NicrosilMenu extends Screen implements ISyncSpiritweb {
 
         public ArrayList<PowerButton> menuButtons = new ArrayList<>();
 
-        public PowerButtonContainer(double x, double y, int containWidth, int containHeight, int curioItemSlot,
-                                    Item item) {
+        public PowerButtonContainer(double x, double y, int containWidth, int containHeight, int itemSlot,
+                                    Item item, boolean isCurio) {
             this.centerX = x;
             this.centerY = y;
 
@@ -971,8 +971,9 @@ public class NicrosilMenu extends Screen implements ISyncSpiritweb {
             this.red = 0;
             this.green = 0;
             this.blue = 0;
-            this.curioItemSlot = curioItemSlot;
+            this.itemSlot = itemSlot;
             this.item = item;
+            this.isCurio = isCurio;
         }
 
         public void addButton(PowerButton button) {
@@ -1209,10 +1210,6 @@ public class NicrosilMenu extends Screen implements ISyncSpiritweb {
             default:
                 // No icon for other types
                 return null;
-        }
-
-        if (type == ManifestationTypes.SANDMASTERY) {
-            int temp = 5;
         }
 
         // assets/<modid>/textures/icon/<modid>/<name>.png

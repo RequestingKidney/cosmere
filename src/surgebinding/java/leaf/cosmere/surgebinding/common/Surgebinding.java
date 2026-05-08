@@ -1,3 +1,4 @@
+
 /*
  * File updated ~ 4 - 2 - 2025 ~ Leaf
  */
@@ -15,6 +16,7 @@ import leaf.cosmere.surgebinding.common.capabilities.world.IRoshar;
 import leaf.cosmere.surgebinding.common.config.SurgebindingConfigs;
 import leaf.cosmere.surgebinding.common.network.SurgebindingPacketHandler;
 import leaf.cosmere.surgebinding.common.registries.*;
+import leaf.cosmere.surgebinding.common.worldgen.SurgebindingConfiguredFeatures;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -24,6 +26,7 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import top.theillusivec4.curios.api.CuriosApi;
 
 @Mod(Surgebinding.MODID)
 public class Surgebinding implements IModModule
@@ -53,12 +56,14 @@ public class Surgebinding implements IModModule
 		SurgebindingEntityTypes.ENTITY_TYPES.register(modBus);
 		SurgebindingAttributes.ATTRIBUTES.register(modBus);
 		SurgebindingManifestations.MANIFESTATIONS.register(modBus);
+		SurgebindingEffects.EFFECTS.register(modBus);
+		SurgebindingEffects.MOB_EFFECTS.register(modBus);
+		SurgebindingBannerPatterns.BANNER_PATTERNS.register(modBus);
+		SurgebindingRecipes.RECIPE_SERIALIZERS.register(modBus);
+		SurgebindingLootFunctions.LOOT_FUNCTIONS.register(modBus);
 
 		SurgebindingBiomes.BIOMES.register(modBus);
-		SurgebindingBiomeModifiers.BIOME_MODIFIER_SERIALIZERS.register(modBus);
 
-		SurgebindingFeatures.CONFIGURED_FEATURES.register(modBus);
-		SurgebindingFeatures.PLACED_FEATURES.register(modBus);
 		SurgebindingCreativeTabs.CREATIVE_TABS.register(modBus);
 
 		SurgebindingArgumentTypes.ARGUMENT_TYPE_INFOS.register(modBus);
@@ -67,6 +72,8 @@ public class Surgebinding implements IModModule
 
 		versionNumber = new Version(ModLoadingContext.get().getActiveContainer());
 		packetHandler = new SurgebindingPacketHandler();
+
+
 	}
 
 	public static ResourceLocation rl(String path)

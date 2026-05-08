@@ -1,9 +1,10 @@
 /*
- * File updated ~ 4 - 2 - 2025 ~ Leaf
+ * File updated ~ 19 - 1 - 2026 ~ Leaf
  */
 
 package leaf.cosmere.surgebinding.common.capabilities.ideals;
 
+import leaf.cosmere.api.Constants;
 import leaf.cosmere.api.CosmereAPI;
 import leaf.cosmere.api.EnumUtils;
 import leaf.cosmere.api.Roshar;
@@ -12,9 +13,10 @@ import leaf.cosmere.api.spiritweb.ISpiritweb;
 import leaf.cosmere.common.cap.entity.SpiritwebCapability;
 import leaf.cosmere.common.util.TaskQueueManager;
 import leaf.cosmere.surgebinding.common.Surgebinding;
-import leaf.cosmere.surgebinding.common.capabilities.ideals.order.WindrunnerIdealStateManager;
+import leaf.cosmere.surgebinding.common.capabilities.ideals.order.*;
 import leaf.cosmere.surgebinding.common.config.SurgebindingConfigs;
 import leaf.cosmere.surgebinding.common.config.SurgebindingServerConfig;
+import leaf.cosmere.surgebinding.common.registries.SurgebindingItems;
 import leaf.cosmere.surgebinding.common.registries.SurgebindingManifestations;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -22,6 +24,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.ServerChatEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,6 +36,12 @@ public class RadiantStateManager
 	private SpiritwebCapability spiritweb;
 	private Roshar.RadiantOrder order = null;
 	private int ideal = 0;
+
+	private ItemStack plate;
+	private Entity plateInventory;
+	private ItemStack blade;
+	private Entity bladeInventory;
+
 
 	public Roshar.RadiantOrder getOrder()
 	{
@@ -88,17 +98,12 @@ public class RadiantStateManager
 		}
 
 		String playerMessage = SurgebindingServerConfig.cleanIdeal(event.getRawText());
-		int idealToSwear = 0;
+		int idealToSwear = -1;
 		Roshar.RadiantOrder idealOrder = null;
 
 		//every order's first ideal is the same
 
 		boolean foundAssociatedIdeal = false;
-
-		if (idealToSwear <= this.ideal)
-		{
-			return;
-		}
 
 		//for each order
 		for (Roshar.RadiantOrder radiantOrder : EnumUtils.RADIANT_ORDERS)
@@ -139,7 +144,7 @@ public class RadiantStateManager
 			}
 		}
 
-		if (idealToSwear == 0)
+		if (idealToSwear <= 0)
 		{
 			//not relevant, exit
 			return;
@@ -221,43 +226,19 @@ public class RadiantStateManager
 			return true;
 		}
 
-		switch (idealOrder)
+		return switch (idealOrder)
 		{
-			case WINDRUNNER ->
-			{
-				return WindrunnerIdealStateManager.validateIdeal(spiritweb, idealToSwear);
-			}
-			case SKYBREAKER ->
-			{
-			}
-			case DUSTBRINGER ->
-			{
-			}
-			case EDGEDANCER ->
-			{
-			}
-			case TRUTHWATCHER ->
-			{
-			}
-			case LIGHTWEAVER ->
-			{
-			}
-			case ELSECALLER ->
-			{
-			}
-			case WILLSHAPER ->
-			{
-			}
-			case STONEWARD ->
-			{
-			}
-			case BONDSMITH ->
-			{
-			}
-		}
-
-
-		return false;
+			case WINDRUNNER -> WindrunnerXPManager.validateIdeal(spiritweb, idealToSwear);
+			case SKYBREAKER -> SkybreakerXPManager.validateIdeal(spiritweb, idealToSwear);
+			case DUSTBRINGER -> DustbringerXPManager.validateIdeal(spiritweb, idealToSwear);
+			case EDGEDANCER -> EdgedancerXPManager.validateIdeal(spiritweb, idealToSwear);
+			case TRUTHWATCHER -> TruthwatcherXPManager.validateIdeal(spiritweb, idealToSwear);
+			case LIGHTWEAVER -> LightweaverXPManager.validateIdeal(spiritweb, idealToSwear);
+			case ELSECALLER -> ElsecallerXPManager.validateIdeal(spiritweb, idealToSwear);
+			case WILLSHAPER -> WillshaperXPManager.validateIdeal(spiritweb, idealToSwear);
+			case STONEWARD -> StonewardXPManager.validateIdeal(spiritweb, idealToSwear);
+			case BONDSMITH -> BondsmithXPManager.validateIdeal(spiritweb, idealToSwear);
+		};
 	}
 
 
@@ -275,6 +256,24 @@ public class RadiantStateManager
 				{
 					player.sendSystemMessage(Component.literal("THESE WORDS ARE ACCEPTED."));
 					updatePowerState();
+				}
+				if (ideal == 3)
+				{
+					blade = new ItemStack(SurgebindingItems.SHARDBLADE.asItem());
+					CompoundTag tag = blade.getOrCreateTag();
+					tag.putUUID(Constants.NBT.ATTUNED_PLAYER, spiritweb.getLiving().getUUID());
+					tag.putBoolean("isLiving", true);
+					tag.putInt("order", order.getID());
+					bladeInventory = spiritweb.getLiving();
+				}
+				if (ideal == 4)
+				{
+					plate = new ItemStack(SurgebindingItems.SHARDPLATE.asItem());
+					CompoundTag tag = plate.getOrCreateTag();
+					tag.putUUID(Constants.NBT.ATTUNED_PLAYER, spiritweb.getLiving().getUUID());
+					tag.putBoolean("isLiving", true);
+					tag.putInt("order", order.getID());
+					plateInventory = spiritweb.getLiving();
 				}
 				//player.playSound(SoundEvents.LIGHTNING_BOLT_THUNDER, 1000, 0.8F + player.getRandom().nextFloat() * 0.2F);
 				player.level().playSound(
@@ -314,4 +313,63 @@ public class RadiantStateManager
 		spiritweb.giveManifestation(firstSurge, getIdeal());
 		spiritweb.giveManifestation(secondSurge, getIdeal());
 	}
+
+	// For use with commands. Possible bondsmith applications?
+	public void forceSwear(int idealToSwear, Roshar.RadiantOrder idealOrder)
+	{
+		this.ideal = idealToSwear;
+		onSuccessfulIdealSworn(spiritweb);
+		if (ideal >= 3 && blade == null)
+		{
+			blade = new ItemStack(SurgebindingItems.SHARDBLADE.asItem());
+			CompoundTag tag = blade.getOrCreateTag();
+			tag.putUUID(Constants.NBT.ATTUNED_PLAYER, spiritweb.getLiving().getUUID());
+			tag.putBoolean("isLiving", true);
+			tag.putInt("order", order.getID());
+			bladeInventory = spiritweb.getLiving();
+		}
+		if (ideal >= 4 && plate == null)
+		{
+			plate = new ItemStack(SurgebindingItems.SHARDPLATE.asItem());
+			CompoundTag tag = plate.getOrCreateTag();
+			tag.putUUID(Constants.NBT.ATTUNED_PLAYER, spiritweb.getLiving().getUUID());
+			tag.putBoolean("isLiving", true);
+			tag.putInt("order", order.getID());
+			plateInventory = spiritweb.getLiving();
+		}
+	}
+
+	public ItemStack getBlade()
+	{
+		return blade;
+	}
+
+	public void updateBlade(ItemStack blade, Entity bladeInventory)
+	{
+		this.blade = blade;
+		this.bladeInventory = bladeInventory;
+	}
+
+	public Entity getBladeInventory()
+	{
+		return bladeInventory;
+	}
+
+	public ItemStack getPlate()
+	{
+		return plate;
+	}
+
+	public void updatePlate(ItemStack plate, Entity plateInventory)
+	{
+		this.plate = plate;
+		this.plateInventory = plateInventory;
+	}
+
+	public Entity getPlateInventory()
+	{
+		return plateInventory;
+	}
+
+
 }

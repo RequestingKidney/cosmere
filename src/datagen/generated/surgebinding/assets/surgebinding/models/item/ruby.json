@@ -1,0 +1,10 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+<<<<<<<< HEAD:src/datagen/generated/cosmere/assets/cosmere/models/item/duralumin_blend.json
+    "layer0": "cosmere:item/duralumin_blend"
+========
+    "layer0": "surgebinding:item/ruby"
+>>>>>>>> develop:src/datagen/generated/surgebinding/assets/surgebinding/models/item/ruby.json
+  }
+}

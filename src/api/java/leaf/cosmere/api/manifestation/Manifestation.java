@@ -8,12 +8,16 @@ import leaf.cosmere.api.CosmereAPI;
 import leaf.cosmere.api.Manifestations;
 import leaf.cosmere.api.providers.IManifestationProvider;
 import leaf.cosmere.api.spiritweb.ISpiritweb;
-import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.IForgeRegistry;
+
+import java.util.function.Supplier;
 
 public class Manifestation implements IManifestationProvider
 {
@@ -136,7 +140,7 @@ public class Manifestation implements IManifestationProvider
 		return false;
 	}
 
-	public void openMenu(Minecraft minecraft)
+	public void openMenu()
 	{
 
 	}
@@ -145,5 +149,18 @@ public class Manifestation implements IManifestationProvider
 	{
 		return ForgeRegistries.ATTRIBUTES.getValue(getRegistryName());
 	}
+
+	public int getInvestitureRemaining(ISpiritweb spiritweb)
+	{
+		return 0;
+	}
+
+	public float getInvestitureHud(ISpiritweb spiritweb)
+	{
+		return 0.f;
+	}
+
+	@OnlyIn(Dist.CLIENT)
+	public AbstractWidget getInfoBlock() { return null; }
 
 }

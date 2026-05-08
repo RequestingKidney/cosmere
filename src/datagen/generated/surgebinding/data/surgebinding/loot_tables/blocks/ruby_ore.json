@@ -1,0 +1,63 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:alternatives",
+          "children": [
+            {
+              "type": "minecraft:item",
+              "conditions": [
+                {
+                  "condition": "minecraft:match_tool",
+                  "predicate": {
+                    "enchantments": [
+                      {
+                        "enchantment": "minecraft:silk_touch",
+                        "levels": {
+                          "min": 1
+                        }
+                      }
+                    ]
+                  }
+                }
+              ],
+<<<<<<<< HEAD:src/datagen/generated/cosmere/data/cosmere/loot_tables/blocks/deepslate_tin_ore.json
+              "name": "cosmere:deepslate_tin_ore"
+========
+              "name": "surgebinding:ruby_ore"
+>>>>>>>> develop:src/datagen/generated/surgebinding/data/surgebinding/loot_tables/blocks/ruby_ore.json
+            },
+            {
+              "type": "minecraft:item",
+              "functions": [
+                {
+                  "enchantment": "minecraft:fortune",
+                  "formula": "minecraft:ore_drops",
+                  "function": "minecraft:apply_bonus"
+                },
+                {
+                  "function": "minecraft:explosion_decay"
+                }
+              ],
+<<<<<<<< HEAD:src/datagen/generated/cosmere/data/cosmere/loot_tables/blocks/deepslate_tin_ore.json
+              "name": "cosmere:raw_tin_ore"
+========
+              "name": "surgebinding:ruby"
+>>>>>>>> develop:src/datagen/generated/surgebinding/data/surgebinding/loot_tables/blocks/ruby_ore.json
+            }
+          ]
+        }
+      ],
+      "name": "main",
+      "rolls": 1.0
+    }
+  ],
+<<<<<<<< HEAD:src/datagen/generated/cosmere/data/cosmere/loot_tables/blocks/deepslate_tin_ore.json
+  "random_sequence": "cosmere:blocks/deepslate_tin_ore"
+========
+  "random_sequence": "surgebinding:blocks/ruby_ore"
+>>>>>>>> develop:src/datagen/generated/surgebinding/data/surgebinding/loot_tables/blocks/ruby_ore.json
+}

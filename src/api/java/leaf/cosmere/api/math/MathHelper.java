@@ -29,17 +29,17 @@ public class MathHelper
 		return RANDOM.nextBoolean();
 	}
 
-    public static float InverseLerp(float a, float b, float value)
-    {
-        if (a != b)
-        {
-            return clamp01((value - a) / (b - a));
-        }
-        else
-        {
-            return 0.0f;
-        }
-    }
+	public static float InverseLerp(float a, float b, float value)
+	{
+		if (a != b)
+		{
+			return clamp01((value - a) / (b - a));
+		}
+		else
+		{
+			return 0.0f;
+		}
+	}
 
 	public static float clamp01(final float f)
 	{

@@ -7,14 +7,15 @@ package leaf.cosmere.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import leaf.cosmere.api.Activator;
+import leaf.cosmere.api.CosmereAPI;
 import leaf.cosmere.api.manifestation.Manifestation;
+import leaf.cosmere.client.gui.SpiritwebHud;
+import leaf.cosmere.client.gui.SpiritwebMenu;
+import leaf.cosmere.client.gui.SpiritwebRegistry;
 import leaf.cosmere.common.Cosmere;
 import leaf.cosmere.common.cap.entity.SpiritwebCapability;
 import leaf.cosmere.common.fog.FogManager;
-import leaf.cosmere.common.network.packets.ChangeManifestationModeMessage;
-import leaf.cosmere.common.network.packets.ChangeSelectedManifestationMessage;
-import leaf.cosmere.common.network.packets.DeactivateManifestationsMessage;
-import leaf.cosmere.common.network.packets.SetSelectedManifestationMessage;
+import leaf.cosmere.common.network.packets.*;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
@@ -28,7 +29,9 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.InputEvent.MouseScrollingEvent;
+import net.minecraftforge.client.event.RenderGuiOverlayEvent;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -59,7 +62,7 @@ public class ClientForgeEvents
 	}
 
 	@SubscribeEvent
-	public static void onKey(InputEvent.Key event)
+	public static void onInput(InputEvent event)
 	{
 		final LocalPlayer player = Minecraft.getInstance().player;
 
@@ -70,8 +73,20 @@ public class ClientForgeEvents
 
 		SpiritwebCapability.get(player).ifPresent(spiritweb ->
 		{
+			if (Keybindings.MANIFESTATION_MENU.consumeClick())
+			{
+				SpiritwebRegistry.getInstance().clear();
+				SpiritwebCapability.get(player).ifPresent( (iSpiritweb ->
+				{
+					iSpiritweb.getSubmodules().forEach( ((manifestationTypes, iSpiritwebSubmodule) -> {
+						iSpiritwebSubmodule.registerMenu();
+					}));
+				}));
+				Minecraft.getInstance().setScreen(new SpiritwebMenu(Component.literal("Spiritweb Menu"), spiritweb));
+			}
+
 			Manifestation selected = spiritweb.getSelectedManifestation();
-			if (isKeyPressed(event, Keybindings.MANIFESTATIONS_DEACTIVATE))
+			if (Keybindings.MANIFESTATIONS_DEACTIVATE.consumeClick())
 			{
 				// just deactivate
 				Cosmere.packetHandler().sendToServer(new DeactivateManifestationsMessage());
@@ -80,17 +95,17 @@ public class ClientForgeEvents
 			}
 
 			//check keybinds with modifiers first?
-			if (isKeyPressed(event, Keybindings.MANIFESTATION_PREVIOUS))
+			if (Keybindings.MANIFESTATION_PREVIOUS.consumeClick())
 			{
 				Cosmere.packetHandler().sendToServer(new ChangeSelectedManifestationMessage(-1));
 			}
-			else if (isKeyPressed(event, Keybindings.MANIFESTATION_NEXT))
+			else if (Keybindings.MANIFESTATION_NEXT.consumeClick())
 			{
 				Cosmere.packetHandler().sendToServer(new ChangeSelectedManifestationMessage(1));
 			}
 
-			final boolean modeIncreasePressed = isKeyPressed(event, Keybindings.MANIFESTATION_MODE_INCREASE);
-			final boolean modeDecreasedPressed = isKeyPressed(event, Keybindings.MANIFESTATION_MODE_DECREASE);
+			final boolean modeIncreasePressed = Keybindings.MANIFESTATION_MODE_INCREASE.consumeClick();
+			final boolean modeDecreasedPressed = Keybindings.MANIFESTATION_MODE_DECREASE.consumeClick();
 
 			if (modeIncreasePressed || modeDecreasedPressed)
 			{
@@ -112,7 +127,7 @@ public class ClientForgeEvents
 
 			for (Activator activator : Keybindings.activators)
 			{
-				if (isKeyPressed(event, activator.getKeyMapping()))
+				if (activator.getKeyMapping().consumeClick())
 				{
 					Manifestation manifestation = activator.getManifestation();
 					Cosmere.packetHandler().sendToServer(new SetSelectedManifestationMessage(manifestation));
@@ -145,41 +160,27 @@ public class ClientForgeEvents
 			}
 
 			//PowerSaveActivator/Saver
-			if(!(isKeyHeld(Keybindings.ACTIVATE_POWER_SAVE) || isKeyHeld(Keybindings.SAVE_POWER_SAVE)))
-            {
-                return;
-            }
-
-			for (PowerSaveState.PowerSaves powerSave: PowerSaveState.PowerSaves.values())
+			boolean activateSave = Keybindings.ACTIVATE_POWER_SAVE.isDown();
+			boolean savePowerState = Keybindings.SAVE_POWER_SAVE.isDown();
+			if (activateSave || savePowerState)
 			{
-				if(isKeyPressed(event, Keybindings.getKey(powerSave.getNum())))
+				for (ClientPowerSaveState.PowerSaves powerSave : ClientPowerSaveState.PowerSaves.values())
 				{
-					if(isKeyHeld(Keybindings.ACTIVATE_POWER_SAVE))
+					boolean numKeyPressed = Keybindings.getKey(powerSave.getNum()).consumeClick();
+					if (numKeyPressed)
 					{
-						powerSave.activate(spiritweb);
-					}
-					else if(isKeyHeld(Keybindings.SAVE_POWER_SAVE))
-					{
-						powerSave.addManifestations(spiritweb);
+						if (activateSave)
+						{
+							Cosmere.packetHandler().sendToServer(new TogglePowerStateMessage(powerSave.getNum()));
+						}
+						else if (savePowerState)
+						{
+							Cosmere.packetHandler().sendToServer(new SavePowerStateMessage(powerSave.getNum()));
+						}
 					}
 				}
 			}
-
 		});
-	}
-
-	private static boolean isKeyPressed(InputEvent.Key event, KeyMapping keyBinding)
-	{
-		return event.getKey() == keyBinding.getKey().getValue() && keyBinding.consumeClick();
-	}
-
-	private static boolean isKeyHeld(KeyMapping keyBinding)
-	{
-		InputConstants.Key key = keyBinding.getKey();
-		return InputConstants.isKeyDown(Minecraft.getInstance()
-				.getWindow()
-				.getWindow(),
-				key.getValue());
 	}
 
 	@SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -205,6 +206,28 @@ public class ClientForgeEvents
 		}
 
 	}
+
+	@SubscribeEvent
+	public static void onRenderGuiOverlayPost(RenderGuiOverlayEvent.Post event)
+	{
+		// make sure it only renders once per frame
+		if (event.getOverlay().id().equals(VanillaGuiOverlay.HOTBAR.id()))
+		{
+			Minecraft mc = Minecraft.getInstance();
+			ProfilerFiller profiler = mc.getProfiler();
+			LocalPlayer playerEntity = mc.player;
+			profiler.push("cosmere-spiritweb-hud");
+			{
+				SpiritwebCapability.get(playerEntity).ifPresent(spiritweb ->
+				{
+					// Shouldn't need mouse location, will only render as a HUD element
+					spiritweb.getSpiritwebHud().render(event.getGuiGraphics(), 0, 0, event.getPartialTick());
+				});
+			}
+			profiler.pop();
+		}
+	}
+
 
 	@SubscribeEvent
 	public static void onClientPlayerClone(ClientPlayerNetworkEvent.Clone event)

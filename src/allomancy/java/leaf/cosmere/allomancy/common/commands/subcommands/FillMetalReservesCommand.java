@@ -9,6 +9,7 @@ import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import leaf.cosmere.allomancy.common.capabilities.AllomancySpiritwebSubmodule;
+import leaf.cosmere.allomancy.common.config.AllomancyConfigs;
 import leaf.cosmere.api.EnumUtils;
 import leaf.cosmere.api.Manifestations;
 import leaf.cosmere.api.Metals;
@@ -53,7 +54,8 @@ public class FillMetalReservesCommand extends ModCommand
 						final Manifestation manifestation = Manifestations.ManifestationTypes.ALLOMANCY.getManifestation(metalTypeID);
 						if (spiritweb.hasManifestation(manifestation))
 						{
-							asm.adjustIngestedMetal(metalType, 999999, true);
+							int amount = metalType.getAllomancyBurnTimeSeconds() * AllomancyConfigs.SERVER.MAX_INGESTIBLE_METAL.get();
+							asm.adjustIngestedMetal(metalType, amount, true);
 						}
 					}
 				}

@@ -1,0 +1,41 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_item": {
+      "conditions": {
+        "items": [
+          {
+            "tag": "forge:nuggets/copper"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+<<<<<<<< HEAD:src/datagen/generated/cosmere/data/minecraft/advancements/recipes/decorations/copper_ingot.json
+        "recipe": "minecraft:copper_ingot"
+========
+        "recipe": "cosmere:copper_ingot"
+>>>>>>>> develop:src/datagen/generated/cosmere/data/cosmere/advancements/recipes/decorations/copper_ingot.json
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_item",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+<<<<<<<< HEAD:src/datagen/generated/cosmere/data/minecraft/advancements/recipes/decorations/copper_ingot.json
+      "minecraft:copper_ingot"
+========
+      "cosmere:copper_ingot"
+>>>>>>>> develop:src/datagen/generated/cosmere/data/cosmere/advancements/recipes/decorations/copper_ingot.json
+    ]
+  },
+  "sends_telemetry_event": false
+}

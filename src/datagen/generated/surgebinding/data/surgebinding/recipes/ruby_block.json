@@ -3,19 +3,26 @@
   "category": "misc",
   "key": {
     "I": {
-      "tag": "forge:gems/ruby"
-    },
-    "J": {
-      "item": "surgebinding:ruby_broam"
+<<<<<<<< HEAD:src/datagen/generated/cosmere/data/cosmere/recipes/atium_ingot.json
+      "type": "forge:partial_nbt",
+      "item": "cosmere:atium_nugget",
+      "nbt": "{nuggetSize:16}"
+========
+      "item": "surgebinding:ruby"
+>>>>>>>> develop:src/datagen/generated/surgebinding/data/surgebinding/recipes/ruby_block.json
     }
   },
   "pattern": [
     "III",
-    "IJI",
+    "III",
     "III"
   ],
   "result": {
+<<<<<<<< HEAD:src/datagen/generated/cosmere/data/cosmere/recipes/atium_ingot.json
+    "item": "cosmere:atium_ingot"
+========
     "item": "surgebinding:ruby_block"
+>>>>>>>> develop:src/datagen/generated/surgebinding/data/surgebinding/recipes/ruby_block.json
   },
   "show_notification": true
 }

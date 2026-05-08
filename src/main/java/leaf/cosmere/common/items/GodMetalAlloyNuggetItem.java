@@ -25,7 +25,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import java.util.ArrayList;
 import java.util.List;
 
-import static leaf.cosmere.common.util.CosmereAttributeUtils.addToBaseAttribute;
+import static leaf.cosmere.common.util.CosmereAttributeUtils.grantBaseAttribute;
 
 public class GodMetalAlloyNuggetItem extends AlloyNuggetItem implements IHasSize, IGrantsBaseAttributes
 {
@@ -144,7 +144,7 @@ public class GodMetalAlloyNuggetItem extends AlloyNuggetItem implements IHasSize
 				{
 					return;
 				}
-				addToBaseAttribute(livingEntity, rangedAttribute, strength);
+				grantBaseAttribute(livingEntity, rangedAttribute, strength);
 			}
 
 			if (livingEntity instanceof ServerPlayer serverPlayer)
