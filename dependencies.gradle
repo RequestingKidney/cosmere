@@ -27,8 +27,12 @@ dependencies {
 	runtimeOnly("dev.engine-room.flywheel:flywheel-neoforge-${minecraft_version}:${flywheel_version}")
 	implementation("com.tterrag.registrate:Registrate:${registrate_version}")
 
-	// Sable (required runtime dep of Create: Aeronautics)
-	runtimeOnly("maven.modrinth:sable:${sable_version}")
+    // Sable (required runtime dep of Create: Aeronautics)
+    runtimeOnly("dev.ryanhcode.sable:sable-neoforge-${sable_version}")
+    api("dev.ryanhcode.sable-companion:sable-companion-common-${sable_companion_version}")
+
+    // Create: Aeronautics (Modrinth)
+    implementation("maven.modrinth:create-aeronautics:${create_aeronautics_version}")
 
 	// Create: Aeronautics (Modrinth)
 	implementation("maven.modrinth:create-aeronautics:${create_aeronautics_version}")

@@ -36,4 +36,6 @@ repositories {
 		//Registrate (and flywheel-fabric)
 		url = "https://maven.tterrag.com/"
 	}
+
+    maven { url = "https://maven.ryanhcode.dev/releases" }
 }

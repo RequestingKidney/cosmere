@@ -10,6 +10,10 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Axis;
+import dev.ryanhcode.sable.companion.ClientSubLevelAccess;
+import dev.ryanhcode.sable.companion.SableCompanion;
+import dev.ryanhcode.sable.companion.SubLevelAccess;
+import dev.ryanhcode.sable.companion.math.Pose3dc;
 import leaf.cosmere.api.CosmereAPI;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
@@ -21,11 +25,10 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Matrix4f;
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
+import org.joml.*;
 
 import java.awt.Color;
+import java.lang.Math;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalDouble;
@@ -56,6 +59,14 @@ public class DrawHelper
 		//For all found things, draw the line
 		for (Vec3 endPos : lineEndPositions)
 		{
+			ClientSubLevelAccess subLevel = SableCompanion.INSTANCE.getContainingClient(endPos);
+			if (subLevel != null)
+			{
+				Pose3dc subPose = subLevel.renderPose();
+				endPos = subPose.transformPosition(endPos);
+			}
+
+
 			Color finalColor = color;
 
 			if (highlightVector != null)
@@ -166,7 +177,7 @@ public class DrawHelper
 				.setNormal(pose, 0.0F, 1.0F, 0.0F);
 	}
 
-	public static void drawBlocksAtPoint(PoseStack poseStack, Color color, List<BlockPos> blockPosList, float range, Vec3 highlightVector, ArrayList<BlockPos> targetedClusterBlockList)
+	public static void drawBlocksAtPoint(PoseStack poseStack, Color color, List<ScannedBlock> blockList, float range, Vec3 highlightVector, ArrayList<BlockPos> targetedClusterBlockList)
 	{
 		poseStack.pushPose();
 
@@ -176,32 +187,30 @@ public class DrawHelper
 		RenderSystem.disableDepthTest();
 		RenderSystem.setShaderColor(1, 1, 1, 1);
 
-
 		poseStack.translate(-view.x, -view.y, -view.z);
 
-		//Tell the render system we're about to draw our lines
-		//Use our line settings, special thanks to chisels and bits showing how that works.
 		final VertexConsumer bufferIn = Minecraft.getInstance().renderBuffers().bufferSource().getBuffer(CosmereAPIRenderTypes.BLOCK_OVERLAY.get());
 
-		//For all found things, draw the line
-		for (BlockPos blockPos : blockPosList)
+		for (ScannedBlock scannedBlock : blockList)
 		{
+			BlockPos blockPos = scannedBlock.pos();
+			ClientSubLevelAccess subLevel = scannedBlock.subLevel();
+
 			Color finalColor = color;
 			if (highlightVector != null)
 			{
-				if (targetedClusterBlockList.contains(blockPos))
-				{
-					finalColor = Color.decode("#66b2ff");
-				}
-				else if (blockPos.getCenter().equals(highlightVector))
+				if (targetedClusterBlockList.contains(blockPos) || blockPos.getCenter().equals(highlightVector))
 				{
 					finalColor = Color.decode("#66b2ff");
 				}
 			}
 
-			float alphaPercent = (float) Math.max(0f, (1.0f - (view.distanceTo(blockPos.getCenter()) / range)));
+			Vec3 worldCenter = subLevel != null
+					? subLevel.renderPose().transformPosition(blockPos.getCenter())
+					: blockPos.getCenter();
+			float alphaPercent = (float) Math.max(0f, (1.0f - (SableCompanion.INSTANCE.rectilinearDistanceWithSubLevels(Minecraft.getInstance().level, view, worldCenter) / range)));
 
-			renderColoredBlock(poseStack, bufferIn, finalColor, alphaPercent, blockPos);
+			renderColoredBlock(poseStack, bufferIn, finalColor, alphaPercent, blockPos, subLevel);
 		}
 
 		//we are meant to end batches... but if I don't, then the boxes draw over other boxes.
@@ -211,77 +220,134 @@ public class DrawHelper
 	}
 
 
-	protected static void renderColoredBlock(PoseStack poseStack, VertexConsumer builder, Color color, float alphaPercent, BlockPos pos)
+	protected static void renderColoredBlock(PoseStack poseStack, VertexConsumer builder, Color color, float alphaPercent, BlockPos pos, ClientSubLevelAccess subLevel)
 	{
-		renderBoxSolid(
-				poseStack,
-				builder,
-				pos,
-				color.getRed() / 255f,
-				color.getGreen() / 255f,
-				color.getBlue() / 255f,
-				0.15f * alphaPercent);
+		if (subLevel != null)
+		{
+			renderBoxSolidInSublevel(
+					poseStack,
+					builder,
+					pos,
+					color.getRed() / 255f,
+					color.getGreen() / 255f,
+					color.getBlue() / 255f,
+					0.15f * alphaPercent,
+					subLevel);
+		} else
+		{
+			renderBoxSolid(
+					poseStack,
+					builder,
+					pos,
+					color.getRed() / 255f,
+					color.getGreen() / 255f,
+					color.getBlue() / 255f,
+					0.15f * alphaPercent);
+		}
 	}
 
-	protected static void renderBoxSolid(PoseStack poseStack, VertexConsumer builder, BlockPos pos, float r, float g, float b, float alpha)
+	protected static void renderBoxSolidInSublevel(PoseStack poseStack, VertexConsumer builder, BlockPos pos, float r, float g, float b, float alpha, ClientSubLevelAccess subLevel)
 	{
-		double x = pos.getX() - 0.001;
-		double y = pos.getY() - 0.001;
-		double z = pos.getZ() - 0.001;
-		double xEnd = pos.getX() + 1.0015;
-		double yEnd = pos.getY() + 1.0015;
-		double zEnd = pos.getZ() + 1.0015;
+		if (subLevel != null)
+		{
+			Pose3dc subPose = subLevel.renderPose();
+			int bx = pos.getX(), by = pos.getY(), bz = pos.getZ();
+			Vec3 c000 = subPose.transformPosition(new Vec3(bx, by, bz));
+			Vec3 c100 = subPose.transformPosition(new Vec3(bx + 1, by, bz));
+			Vec3 c101 = subPose.transformPosition(new Vec3(bx + 1, by,bz + 1));
+			Vec3 c001 = subPose.transformPosition(new Vec3(bx, by,bz + 1));
+			Vec3 c010 = subPose.transformPosition(new Vec3(bx,by+1, bz));
+			Vec3 c110 = subPose.transformPosition(new Vec3(bx + 1,by + 1, bz));
+			Vec3 c111 = subPose.transformPosition(new Vec3(bx + 1,by + 1,bz + 1));
+			Vec3 c011 = subPose.transformPosition(new Vec3(bx,by + 1,bz + 1));
 
-		renderBoxSolid(poseStack, builder, x, y, z, xEnd, yEnd, zEnd, r, g, b, alpha);
+			PoseStack.Pose pose = poseStack.last();
+			Matrix4f matrix = pose.pose();
+
+			//down
+			builder.addVertex(matrix, (float)c000.x, (float)c000.y, (float)c000.z).setColor(r, g, b, alpha).setNormal(pose, 0, 0, 0);
+			builder.addVertex(matrix, (float)c100.x, (float)c100.y, (float)c100.z).setColor(r, g, b, alpha).setNormal(pose, 0, 0, 0);
+			builder.addVertex(matrix, (float)c101.x, (float)c101.y, (float)c101.z).setColor(r, g, b, alpha).setNormal(pose, 0, 0, 0);
+			builder.addVertex(matrix, (float)c001.x, (float)c001.y, (float)c001.z).setColor(r, g, b, alpha).setNormal(pose, 0, 0, 0);
+
+			//up
+			builder.addVertex(matrix, (float)c010.x, (float)c010.y, (float)c010.z).setColor(r, g, b, alpha).setNormal(pose, 0, 0, 0);
+			builder.addVertex(matrix, (float)c011.x, (float)c011.y, (float)c011.z).setColor(r, g, b, alpha).setNormal(pose, 0, 0, 0);
+			builder.addVertex(matrix, (float)c111.x, (float)c111.y, (float)c111.z).setColor(r, g, b, alpha).setNormal(pose, 0, 0, 0);
+			builder.addVertex(matrix, (float)c110.x, (float)c110.y, (float)c110.z).setColor(r, g, b, alpha).setNormal(pose, 0, 0, 0);
+
+			//east
+			builder.addVertex(matrix, (float)c000.x, (float)c000.y, (float)c000.z).setColor(r, g, b, alpha).setNormal(pose, 0, 0, 0);
+			builder.addVertex(matrix, (float)c010.x, (float)c010.y, (float)c010.z).setColor(r, g, b, alpha).setNormal(pose, 0, 0, 0);
+			builder.addVertex(matrix, (float)c110.x, (float)c110.y, (float)c110.z).setColor(r, g, b, alpha).setNormal(pose, 0, 0, 0);
+			builder.addVertex(matrix, (float)c100.x, (float)c100.y, (float)c100.z).setColor(r, g, b, alpha).setNormal(pose, 0, 0, 0);
+
+			//west
+			builder.addVertex(matrix, (float)c001.x, (float)c001.y, (float)c001.z).setColor(r, g, b, alpha).setNormal(pose, 0, 0, 0);
+			builder.addVertex(matrix, (float)c101.x, (float)c101.y, (float)c101.z).setColor(r, g, b, alpha).setNormal(pose, 0, 0, 0);
+			builder.addVertex(matrix, (float)c111.x, (float)c111.y, (float)c111.z).setColor(r, g, b, alpha).setNormal(pose, 0, 0, 0);
+			builder.addVertex(matrix, (float)c011.x, (float)c011.y, (float)c011.z).setColor(r, g, b, alpha).setNormal(pose, 0, 0, 0);
+
+			//south
+			builder.addVertex(matrix, (float)c100.x, (float)c100.y, (float)c100.z).setColor(r, g, b, alpha).setNormal(pose, 0, 0, 0);
+			builder.addVertex(matrix, (float)c110.x, (float)c110.y, (float)c110.z).setColor(r, g, b, alpha).setNormal(pose, 0, 0, 0);
+			builder.addVertex(matrix, (float)c111.x, (float)c111.y, (float)c111.z).setColor(r, g, b, alpha).setNormal(pose, 0, 0, 0);
+			builder.addVertex(matrix, (float)c101.x, (float)c101.y, (float)c101.z).setColor(r, g, b, alpha).setNormal(pose, 0, 0, 0);
+
+			//north
+			builder.addVertex(matrix, (float)c000.x, (float)c000.y, (float)c000.z).setColor(r, g, b, alpha).setNormal(pose, 0, 0, 0);
+			builder.addVertex(matrix, (float)c001.x, (float)c001.y, (float)c001.z).setColor(r, g, b, alpha).setNormal(pose, 0, 0, 0);
+			builder.addVertex(matrix, (float)c011.x, (float)c011.y, (float)c011.z).setColor(r, g, b, alpha).setNormal(pose, 0, 0, 0);
+			builder.addVertex(matrix, (float)c010.x, (float)c010.y, (float)c010.z).setColor(r, g, b, alpha).setNormal(pose, 0, 0, 0);
+		}
 	}
 
-	protected static void renderBoxSolid(PoseStack poseStack, VertexConsumer builder, double x, double y, double z, double xEnd, double yEnd, double zEnd, float red, float green, float blue, float alpha)
-	{
-		float startX = (float) x;
-		float startY = (float) y;
-		float startZ = (float) z;
-		float endX = (float) xEnd;
-		float endY = (float) yEnd;
-		float endZ = (float) zEnd;
+	protected static void renderBoxSolid(PoseStack poseStack, VertexConsumer builder, BlockPos pos, float red, float green, float blue, float alpha) {
+		float startX = pos.getX() - 0.001f;
+		float startY = pos.getY() - 0.001f;
+		float startZ = pos.getZ() - 0.001f;
+		float endX = pos.getX() + 1.0015f;
+		float endY = pos.getY() + 1.0015f;
+		float endZ = pos.getZ() + 1.0015f;
 
 		PoseStack.Pose pose = poseStack.last();
 		Matrix4f matrix = pose.pose();
 
 		//down
-		builder.addVertex(matrix, startX, startY, startZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 1, 0);
-		builder.addVertex(matrix, endX, startY, startZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 1, 0);
-		builder.addVertex(matrix, endX, startY, endZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 1, 0);
-		builder.addVertex(matrix, startX, startY, endZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 1, 0);
+		builder.addVertex(matrix, startX, startY, startZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 0, 0);
+		builder.addVertex(matrix, endX, startY, startZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 0, 0);
+		builder.addVertex(matrix, endX, startY, endZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 0, 0);
+		builder.addVertex(matrix, startX, startY, endZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 0, 0);
 
 		//up
-		builder.addVertex(matrix, startX, endY, startZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 1, 0);
-		builder.addVertex(matrix, startX, endY, endZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 1, 0);
-		builder.addVertex(matrix, endX, endY, endZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 1, 0);
-		builder.addVertex(matrix, endX, endY, startZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 1, 0);
+		builder.addVertex(matrix, startX, endY, startZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 0, 0);
+		builder.addVertex(matrix, startX, endY, endZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 0, 0);
+		builder.addVertex(matrix, endX, endY, endZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 0, 0);
+		builder.addVertex(matrix, endX, endY, startZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 0, 0);
 
 		//east
-		builder.addVertex(matrix, startX, startY, startZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 1, 0);
-		builder.addVertex(matrix, startX, endY, startZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 1, 0);
-		builder.addVertex(matrix, endX, endY, startZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 1, 0);
-		builder.addVertex(matrix, endX, startY, startZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 1, 0);
+		builder.addVertex(matrix, startX, startY, startZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 0, 0);
+		builder.addVertex(matrix, startX, endY, startZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 0, 0);
+		builder.addVertex(matrix, endX, endY, startZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 0, 0);
+		builder.addVertex(matrix, endX, startY, startZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 0, 0);
 
 		//west
-		builder.addVertex(matrix, startX, startY, endZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 1, 0);
-		builder.addVertex(matrix, endX, startY, endZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 1, 0);
-		builder.addVertex(matrix, endX, endY, endZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 1, 0);
-		builder.addVertex(matrix, startX, endY, endZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 1, 0);
+		builder.addVertex(matrix, startX, startY, endZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 0, 0);
+		builder.addVertex(matrix, endX, startY, endZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 0, 0);
+		builder.addVertex(matrix, endX, endY, endZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 0, 0);
+		builder.addVertex(matrix, startX, endY, endZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 0, 0);
 
 		//south
-		builder.addVertex(matrix, endX, startY, startZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 1, 0);
-		builder.addVertex(matrix, endX, endY, startZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 1, 0);
-		builder.addVertex(matrix, endX, endY, endZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 1, 0);
-		builder.addVertex(matrix, endX, startY, endZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 1, 0);
+		builder.addVertex(matrix, endX, startY, startZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 0, 0);
+		builder.addVertex(matrix, endX, endY, startZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 0, 0);
+		builder.addVertex(matrix, endX, endY, endZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 0, 0);
+		builder.addVertex(matrix, endX, startY, endZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 0, 0);
 
 		//north
-		builder.addVertex(matrix, startX, startY, startZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 1, 0);
-		builder.addVertex(matrix, startX, startY, endZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 1, 0);
-		builder.addVertex(matrix, startX, endY, endZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 1, 0);
-		builder.addVertex(matrix, startX, endY, startZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 1, 0);
+		builder.addVertex(matrix, startX, startY, startZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 0, 0);
+		builder.addVertex(matrix, startX, startY, endZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 0, 0);
+		builder.addVertex(matrix, startX, endY, endZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 0, 0);
+		builder.addVertex(matrix, startX, endY, startZ).setColor(red, green, blue, alpha).setNormal(pose, 0, 0, 0);
 	}
 
 	//Special thanks to Chisels and Bits for showing how this works

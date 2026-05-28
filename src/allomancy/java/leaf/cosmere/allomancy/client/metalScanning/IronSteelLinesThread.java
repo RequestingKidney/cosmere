@@ -4,6 +4,12 @@
 
 package leaf.cosmere.allomancy.client.metalScanning;
 
+import dev.ryanhcode.sable.companion.ClientSubLevelAccess;
+import dev.ryanhcode.sable.companion.SableCompanion;
+import dev.ryanhcode.sable.companion.SubLevelAccess;
+import leaf.cosmere.api.helpers.ScannedBlock;
+import dev.ryanhcode.sable.companion.math.BoundingBox3d;
+import dev.ryanhcode.sable.companion.math.BoundingBox3dc;
 import leaf.cosmere.allomancy.common.manifestation.AllomancyIronSteel;
 import leaf.cosmere.api.CosmereAPI;
 import leaf.cosmere.api.CosmereTags;
@@ -13,6 +19,7 @@ import leaf.cosmere.api.helpers.EntityHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Position;
 import net.minecraft.core.Vec3i;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
@@ -193,40 +200,47 @@ public class IronSteelLinesThread implements Runnable
 				ScanResult nextScan;
 				LocalPlayer playerEntity = mc.player;
 				nextScan = new ScanResult();
+				Level level = Minecraft.getInstance().level;
 				// todo: add configurable tick rate for this thread
 
 				//find all the things that we want to draw a line to from the player
 				//metal blocks
 				{
 					BlockPos.withinManhattanStream(playerEntity.blockPosition(), scanRange, scanRange, scanRange)
-							.filter(blockPos ->
-							{
-								Block block = playerEntity.level().getBlockState(blockPos).getBlock();
-								final boolean validMetalBlock = block instanceof IHasMetalType iHasMetalType && iHasMetalType.getMetalType() != Metals.MetalType.ALUMINUM;
-								boolean isGood = validMetalBlock || containsMetal(block);
+							.map(blockPos ->
+									SableCompanion.INSTANCE.runIncludingSubLevels(level, (Position) blockPos.getCenter(), true, null, ((subLevelAccess, pos) -> {
+										Block block = playerEntity.clientLevel.getBlockState(pos).getBlock();
+										final boolean validMetalBlock = block instanceof IHasMetalType iHasMetalType && iHasMetalType.getMetalType() != Metals.MetalType.ALUMINUM;
+										boolean isGood = validMetalBlock || containsMetal(block);
 
-								if (isGood)
-								{
-									Player player = Minecraft.getInstance().player;
-									Level level = Minecraft.getInstance().level;
-									// if level is null, the player has no world loaded, so stop
-									if (player == null || mc.level == null)
-									{
-										stopThread(false);
-										return false;
-									}
-									isGood = !isBlockObscured(blockPos, player, level);
+										if(subLevelAccess != null && isGood)
+										{
+											System.out.println("test");
+										}
 
-									if (isGood)
-									{
-										// compare player look vector to directional vector
-										closestMetalThingLookedAt.set(compareVectors(blockPos, player, closestMetalThingLookedAt.get()));
-									}
-								}
+										if (isGood)
+										{
+											Player player = Minecraft.getInstance().player;
+											// if level is null, the player has no world loaded, so stop
+											if (player == null || mc.level == null)
+											{
+												stopThread(false);
+												return null;
+											}
+											isGood = !isBlockObscured(blockPos, player, level);
 
-								return isGood;
-							})
-							.forEach(blockPos -> nextScan.addBlock(blockPos.immutable(), closestMetalThingLookedAt.get()));
+											if (isGood)
+											{
+												// compare player look vector to directional vector
+												closestMetalThingLookedAt.set(compareVectors(blockPos, player, closestMetalThingLookedAt.get()));
+											}
+										}
+
+										if (isGood)
+											return new ScannedBlock(pos.immutable(), subLevelAccess instanceof ClientSubLevelAccess csa ? csa : null);
+										return null;
+									}))).filter(Objects::nonNull)
+							.forEach(scannedBlock -> nextScan.addBlock(scannedBlock, closestMetalThingLookedAt.get()));
 
 					Vec3 possibleClosestMetalObject = nextScan.finalizeClusters();
 					if (possibleClosestMetalObject != null)
@@ -242,7 +256,6 @@ public class IronSteelLinesThread implements Runnable
 						try
 						{
 							Player player = Minecraft.getInstance().player;
-							Level level = Minecraft.getInstance().level;
 							// if level is null, the player has no world loaded, so stop
 							if (player == null || mc.level == null)
 							{

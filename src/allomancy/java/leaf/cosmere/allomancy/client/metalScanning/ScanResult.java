@@ -4,6 +4,7 @@
 
 package leaf.cosmere.allomancy.client.metalScanning;
 
+import leaf.cosmere.api.helpers.ScannedBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
 
@@ -18,7 +19,7 @@ import java.util.*;
 public final class ScanResult
 {
 	public final List<Vec3> foundEntities = new ArrayList<>();
-	public final List<BlockPos> foundBlocks = new ArrayList<>();
+	public final List<ScannedBlock> foundBlocks = new ArrayList<>();
 	public BlockScanResult targetedCluster = null;
 	public boolean hasTargetedCluster = false;
 
@@ -36,9 +37,10 @@ public final class ScanResult
 		clusters.clear();
 	}
 
-	public void addBlock(BlockPos blockPos, Vec3 currentClosestMetalObject)
+	public void addBlock(ScannedBlock scannedBlock, Vec3 currentClosestMetalObject)
 	{
-		foundBlocks.add(blockPos);
+		foundBlocks.add(scannedBlock);
+		BlockPos blockPos = scannedBlock.pos();
 
 		//Has a cluster been made nearby already?
 		if (!tryAddToCluster(clusters, blockPos, currentClosestMetalObject))
